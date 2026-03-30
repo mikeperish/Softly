@@ -1,80 +1,94 @@
-//
-//  ContentView.swift
-//  Antistress
-//
-//  Created by Mykhailo Mirzaiev on 30.03.2026.
-//
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var selectedTab = 0
 
     var body: some View {
-        NavigationViewWrapper {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+        ZStack(alignment: .top) {
+            // Таби
+            TabView(selection: $selectedTab) {
+                PopView()
+                    .tabItem { Label("Pop", systemImage: "circle.hexagongrid.fill") }
+                    .tag(0)
+
+                SoundView()
+                    .tabItem { Label("Sound", systemImage: "waveform") }
+                    .tag(1)
+
+                CubeView()
+                    .tabItem { Label("Cube", systemImage: "cube.fill") }
+                    .tag(2)
+
+                FocusView()
+                    .tabItem { Label("Focus", systemImage: "timer") }
+                    .tag(3)
+
+                PhysicsView()
+                    .tabItem { Label("Physics", systemImage: "gyroscope") }
+                    .tag(4)
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+            .tint(accentForTab(selectedTab))
+            .onAppear { configureTabBar() }
+
+            // Глобальна шапка — поверх всіх табів
+            HStack {
+                // Преміум — зліва
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
+                    Image(systemName: "diamond.fill")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "#FFD700"), Color(hex: "#FFA500")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(.white.opacity(0.07)))
                 }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+
+                Spacer()
+
+                // Акаунт — справа
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.white.opacity(0.55))
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(.white.opacity(0.07)))
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+    private func accentForTab(_ tab: Int) -> Color {
+        switch tab {
+        case 0: return AppColors.pop
+        case 1: return AppColors.sound
+        case 2: return AppColors.cube
+        case 3: return AppColors.focus
+        case 4: return AppColors.physics
+        default: return AppColors.cube
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+    private func configureTabBar() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(red: 0.04, green: 0.04, blue: 0.06, alpha: 0.95)
+
+        let item = UITabBarItemAppearance()
+        item.normal.iconColor = UIColor.white.withAlphaComponent(0.35)
+        item.normal.titleTextAttributes = [.foregroundColor: UIColor.white.withAlphaComponent(0.35)]
+
+        appearance.stackedLayoutAppearance = item
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
-}
-
-fileprivate struct NavigationViewWrapper<Content: View>: View {
-    let content: () -> Content
-
-    var body: some View {
-#if os(macOS)
-        NavigationSplitView {
-            content()
-        } detail: {
-            Text("Select an item")
-        }
-#else
-        content()
-#endif
-    }
-}
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }
