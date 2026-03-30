@@ -2,12 +2,13 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    @State private var popSilhouette: BubbleSilhouette = .heart
 
     var body: some View {
         ZStack(alignment: .top) {
             // Таби
             TabView(selection: $selectedTab) {
-                PopView()
+                PopView(currentSilhouette: $popSilhouette)
                     .tabItem { Label("Pop", systemImage: "circle.hexagongrid.fill") }
                     .tag(0)
 
@@ -51,6 +52,20 @@ struct ContentView: View {
 
                 Spacer()
 
+                if selectedTab == 0 {
+                    HStack(spacing: 6) {
+                        SilhouetteIconView(silhouette: popSilhouette, size: 15)
+
+                        Text(popSilhouette.displayName)
+                            .font(.system(size: 17, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.8))
+                            .id(popSilhouette.rawValue)
+                    }
+                    .animation(.easeInOut(duration: 0.35), value: popSilhouette)
+                }
+
+                Spacer()
+                
                 // Акаунт — справа
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
