@@ -3,6 +3,7 @@
 // iOS 17+, SwiftUI
 
 import SwiftUI
+import AudioToolbox
 
 // MARK: - Silhouette Definition
 
@@ -79,7 +80,6 @@ enum BubbleSilhouette: Int, CaseIterable {
 
 // MARK: - Shape Hit-Test (Pixel Matrices 11×13)
 
-/// Returns the color code at (nx, ny) or 0 if outside shape
 func shapeColorCode(_ shape: BubbleSilhouette, nx: Double, ny: Double) -> Int {
     let col = Int((nx + 1.0) / 2.0 * 11.0)
     let row = Int((ny + 1.0) / 2.0 * 13.0)
@@ -99,7 +99,6 @@ func isInsideShape(_ shape: BubbleSilhouette, nx: Double, ny: Double) -> Bool {
     return shapeColorCode(shape, nx: nx, ny: ny) != 0
 }
 
-// Heart: classic pixel heart with highlights (3) and shadows (2)
 private let heartMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0],
@@ -116,7 +115,6 @@ private let heartMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
 ]
 
-// Cactus: trunk with highlights (3) and shadow (2) on pot
 private let cactusMatrix: [[Int]] = [
     [0,0,0,0,0,1,1,0,0,0,0],
     [0,0,0,0,0,3,1,0,0,0,0],
@@ -133,7 +131,6 @@ private let cactusMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
 ]
 
-// Cloud: highlight (3) on left edge, shadow (2) on right/bottom
 private let cloudMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,1,1,0,0,0,0,0,0],
@@ -150,13 +147,22 @@ private let cloudMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
 ]
 
+// MARK: - Pop Sound
+
+private enum PopSound {
+    /// Системний звук — короткий "pop" клік
+    static func play() {
+        AudioServicesPlaySystemSound(1123)
+    }
+}
+
 // MARK: - Bubble Model
 
 struct PopBubble: Identifiable {
     let id: Int
     let col: Int
     let row: Int
-    let colorCode: Int  // 1=accent, 2=dark/secondary, 3=light/highlight
+    let colorCode: Int
 }
 
 // MARK: - Single Bubble View
@@ -167,6 +173,7 @@ struct BubbleCell: View {
     let colorCode: Int
     let onPop: () -> Void
     let hapticsEnabled: Bool
+    let soundEnabled: Bool
 
     @State private var isPopped = false
     @State private var isRegrowing = false
@@ -176,7 +183,6 @@ struct BubbleCell: View {
         size * 0.5 * silhouette.bubbleCornerFraction
     }
 
-    /// Resolve bubble fill colors based on colorCode
     private var bubblePrimaryColor: Color {
         switch colorCode {
         case 2: return silhouette.secondaryColor
@@ -276,6 +282,9 @@ struct BubbleCell: View {
         if hapticsEnabled {
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         }
+        if soundEnabled {
+            PopSound.play()
+        }
 
         withAnimation(.spring(response: 0.08, dampingFraction: 0.3)) {
             popScale = 1.25
@@ -307,7 +316,7 @@ struct PopGridLayout {
     }
 }
 
-// MARK: - Silhouette Icon View (SF Symbol or Emoji)
+// MARK: - Silhouette Icon View
 
 struct SilhouetteIconView: View {
     let silhouette: BubbleSilhouette
@@ -325,7 +334,7 @@ struct SilhouetteIconView: View {
     }
 }
 
-// MARK: - Shape Indicator Dots (Clickable)
+// MARK: - Shape Indicator Dots
 
 struct PopShapeIndicator: View {
     let current: BubbleSilhouette
@@ -491,6 +500,15 @@ struct PopToggle: View {
     }
 }
 
+// MARK: - Transition Direction
+
+private enum SlideDirection {
+    case left, right
+
+    var outOffset: CGFloat { self == .left ? -1 : 1 }
+    var inOffset: CGFloat { self == .left ? 1 : -1 }
+}
+
 // MARK: - Pop View (Main)
 
 struct PopView: View {
@@ -502,7 +520,11 @@ struct PopView: View {
     @State private var showSettings = false
     @State private var soundEnabled = true
     @State private var hapticsEnabled = true
-    @State private var contentOpacity: Double = 1.0
+
+    // Swipe transition
+    @State private var gridOffset: CGFloat = 0
+    @State private var gridOpacity: Double = 1.0
+    @State private var dragOffset: CGFloat = 0
 
     private let cols = 11
     private let rows = 13
@@ -510,30 +532,31 @@ struct PopView: View {
     var body: some View {
         GeometryReader { geo in
             let layout = PopGridLayout(geoSize: geo.size, cols: cols, rows: rows)
+            let screenWidth = geo.size.width
 
             ZStack {
                 backgroundView
 
                 VStack(spacing: 12) {
-                                Spacer()
+                    Spacer()
 
-                                gridSection(layout: layout)
-                        .opacity(contentOpacity)
+                    gridSection(layout: layout)
+                        .offset(x: gridOffset + dragOffset)
+                        .opacity(gridOpacity)
                         .frame(maxWidth: .infinity)
 
                     Spacer()
 
                     PopShapeIndicator(current: currentSilhouette) { target in
-                        transitionTo(target)
+                        let dir: SlideDirection = target.rawValue > currentSilhouette.rawValue ? .left : .right
+                        transitionTo(target, direction: dir, screenWidth: screenWidth)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
                 }
 
-                // Ellipsis button (top-right)
                 ellipsisOverlay
 
-                // Settings panel
                 if showSettings {
                     PopSettingsPanel(
                         soundEnabled: $soundEnabled,
@@ -546,9 +569,9 @@ struct PopView: View {
                     }
                 }
             }
+            .gesture(swipeGesture(screenWidth: screenWidth))
         }
         .onAppear { regenerateGrid() }
-        .gesture(swipeGesture)
     }
 
     // MARK: - Title Row
@@ -564,6 +587,7 @@ struct PopView: View {
         }
         .animation(.easeInOut(duration: 0.35), value: currentSilhouette)
     }
+
     // MARK: - Ellipsis Overlay
 
     private var ellipsisOverlay: some View {
@@ -628,7 +652,8 @@ struct PopView: View {
                     size: cellSize,
                     colorCode: bubble.colorCode,
                     onPop: { handlePop() },
-                    hapticsEnabled: hapticsEnabled
+                    hapticsEnabled: hapticsEnabled,
+                    soundEnabled: soundEnabled
                 )
                 .position(
                     x: CGFloat(bubble.col) * cellSize + cellSize * 0.5,
@@ -641,17 +666,36 @@ struct PopView: View {
 
     // MARK: - Swipe Gesture
 
-    private var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: 50)
+    private func swipeGesture(screenWidth: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 30)
+            .onChanged { value in
+                guard !isTransitioning else { return }
+                let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
+                if isHorizontal {
+                    // Еластичний drag — сітка слідує за пальцем з опором
+                    dragOffset = value.translation.width * 0.4
+                }
+            }
             .onEnded { value in
                 guard !isTransitioning else { return }
                 let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
-                guard isHorizontal else { return }
+                guard isHorizontal else {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        dragOffset = 0
+                    }
+                    return
+                }
 
-                if value.translation.width < 0 {
-                    transitionTo(currentSilhouette.next)
+                let threshold: CGFloat = 50
+                if value.translation.width < -threshold {
+                    transitionTo(currentSilhouette.next, direction: .left, screenWidth: screenWidth)
+                } else if value.translation.width > threshold {
+                    transitionTo(currentSilhouette.previous, direction: .right, screenWidth: screenWidth)
                 } else {
-                    transitionTo(currentSilhouette.previous)
+                    // Недостатній свайп — повернути назад
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        dragOffset = 0
+                    }
                 }
             }
     }
@@ -685,33 +729,51 @@ struct PopView: View {
 
         if poppedCount >= totalBubbles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                transitionTo(currentSilhouette.next)
+                transitionTo(currentSilhouette.next, direction: .left, screenWidth: UIScreen.main.bounds.width)
             }
         }
     }
 
-    private func transitionTo(_ target: BubbleSilhouette) {
+    private func transitionTo(_ target: BubbleSilhouette, direction: SlideDirection, screenWidth: CGFloat) {
         guard !isTransitioning else { return }
-        guard target != currentSilhouette else { return }
+        guard target != currentSilhouette else {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                dragOffset = 0
+            }
+            return
+        }
         isTransitioning = true
 
         if hapticsEnabled {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
 
-        withAnimation(.easeInOut(duration: 0.35)) {
-            contentOpacity = 0
+        let slideOut = screenWidth * 0.6 * direction.outOffset
+
+        // Фаза 1: поточна сітка вилітає + fade out
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+            gridOffset = slideOut
+            gridOpacity = 0
+            dragOffset = 0
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+        // Фаза 2: підміна контенту + влітає з протилежного боку
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             currentSilhouette = target
             regenerateGrid()
 
-            withAnimation(.easeInOut(duration: 0.4)) {
-                contentOpacity = 1.0
+            // Стартова позиція нової сітки — з протилежного боку
+            gridOffset = screenWidth * 0.5 * direction.inOffset
+            gridOpacity = 0
+
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                gridOffset = 0
+                gridOpacity = 1.0
             }
 
-            isTransitioning = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                isTransitioning = false
+            }
         }
     }
 }
