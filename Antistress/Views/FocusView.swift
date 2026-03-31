@@ -1,10 +1,305 @@
+// FocusView.swift
+// Fidget App — Pomodoro Timer UI
+// iOS 17+, SwiftUI
+
 import SwiftUI
 
-struct FocusView: View {
+// MARK: - Focus Accent Colors
+
+private let focusRed = Color(red: 0.9, green: 0.2, blue: 0.2)
+private let focusRedGlow = Color(red: 0.35, green: 0.06, blue: 0.06)
+private let breakGreen = Color(red: 0.3, green: 0.78, blue: 0.55)
+private let breakGreenGlow = Color(red: 0.06, green: 0.25, blue: 0.12)
+
+// MARK: - Circular Progress
+
+struct FocusRing: View {
+    let progress: Double
+    let timeString: String
+    let phaseLabel: String
+    let accent: Color
+
     var body: some View {
         ZStack {
-            AppBackground(accentColor: AppColors.focus)
-            GlassCard(title: "Focus", icon: "timer", accentColor: AppColors.focus)
+            Circle()
+                .stroke(accent.opacity(0.12), lineWidth: 8)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    accent.opacity(0.3),
+                    style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .blur(radius: 8)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    accent,
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+
+            VStack(spacing: 4) {
+                Text(timeString)
+                    .font(.system(size: 52, weight: .ultraLight, design: .monospaced))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText())
+
+                Text(phaseLabel.uppercased())
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(accent.opacity(0.7))
+                    .tracking(3)
+            }
+        }
+        .animation(.easeInOut(duration: 0.4), value: progress)
+    }
+}
+
+// MARK: - Mode Switcher
+
+struct FocusModeSwitcher: View {
+    @Binding var preset: FocusPreset
+    let accent: Color
+    let onSelect: (FocusPreset) -> Void
+
+    var body: some View {
+        HStack(spacing: 20) {
+            ForEach(FocusPreset.allCases) { p in
+                let isActive = p == preset
+                Button {
+                    guard p != preset else { return }
+                    onSelect(p)
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
+                    Text(p.rawValue)
+                        .font(.system(size: 13, weight: isActive ? .semibold : .regular, design: .rounded))
+                        .foregroundStyle(isActive ? .white : .white.opacity(0.3))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 7)
+                        .background {
+                            if isActive {
+                                Capsule()
+                                    .fill(accent.opacity(0.2))
+                                    .overlay {
+                                        Capsule()
+                                            .strokeBorder(accent.opacity(0.3), lineWidth: 0.5)
+                                    }
+                            }
+                        }
+                }
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: preset)
+    }
+}
+
+// MARK: - Stats Bar
+
+struct FocusStatsBar: View {
+    let sessionsToday: Int
+    let minutesToday: Int
+    let streak: Int
+
+    var body: some View {
+        HStack(spacing: 20) {
+            statItem(value: "\(sessionsToday)", label: "sessions")
+            statItem(value: "\(minutesToday)", label: "min")
+            if streak > 0 {
+                statItem(value: "\(streak)", label: "streak")
+            }
         }
     }
+
+    private func statItem(value: String, label: String) -> some View {
+        HStack(spacing: 3) {
+            Text(value)
+                .font(.system(size: 13, weight: .medium, design: .monospaced))
+                .foregroundStyle(.white.opacity(0.5))
+            Text(label)
+                .font(.system(size: 11, weight: .regular, design: .rounded))
+                .foregroundStyle(.white.opacity(0.25))
+        }
+    }
+}
+
+// MARK: - FocusView (Main)
+
+struct FocusView: View {
+    @Binding var soundEnabled: Bool
+    @Binding var hapticsEnabled: Bool
+    @ObservedObject var timer: FocusTimer
+
+    @StateObject private var store = FocusStore()
+
+    private var activeAccent: Color {
+        return timer.phase.isFocus ? focusRed : breakGreen
+    }
+
+    private var activeGlow: Color {
+        return timer.phase.isFocus ? focusRedGlow : breakGreenGlow
+    }
+
+    var body: some View {
+        ZStack {
+            backgroundView
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                // Timer ring
+                FocusRing(
+                    progress: timer.progress,
+                    timeString: timer.timeString,
+                    phaseLabel: timer.phaseLabel,
+                    accent: activeAccent
+                )
+                .frame(width: 260, height: 260)
+
+                // Long break dots
+                if timer.focusSessionsInCycle > 0 {
+                    sessionDots
+                        .padding(.top, 16)
+                }
+
+                // Stats
+                FocusStatsBar(
+                    sessionsToday: store.sessionsToday,
+                    minutesToday: store.focusMinutesToday,
+                    streak: store.currentStreak
+                )
+                .padding(.top, 20)
+
+                Spacer()
+                    .frame(height: 36)
+
+                // Controls
+                controlButtons
+
+                Spacer()
+
+                // Mode switcher
+                FocusModeSwitcher(
+                    preset: $timer.preset,
+                    accent: activeAccent
+                ) { newPreset in
+                    timer.applyPreset(newPreset)
+                }
+                .padding(.bottom, 28)
+            }
+        }
+        .animation(.easeInOut(duration: 0.6), value: timer.phase.isFocus)
+        .onAppear {
+            timer.requestNotificationPermission()
+            timer.soundEnabled = soundEnabled
+            timer.hapticsEnabled = hapticsEnabled
+            timer.onPhaseComplete = { phase, wasSkipped in
+                guard phase == .focus, !wasSkipped else { return }
+                store.recordCompletedFocus(durationMinutes: timer.workMinutes)
+            }
+        }
+        .onChange(of: soundEnabled) { _, val in timer.soundEnabled = val }
+        .onChange(of: hapticsEnabled) { _, val in timer.hapticsEnabled = val }
+    }
+
+    // MARK: - Session Dots
+
+    private var sessionDots: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<4, id: \.self) { i in
+                Circle()
+                    .fill(i < timer.focusSessionsInCycle
+                          ? activeAccent
+                          : Color.white.opacity(0.12))
+                    .frame(width: 6, height: 6)
+            }
+        }
+        .animation(.spring(response: 0.3), value: timer.focusSessionsInCycle)
+    }
+
+    // MARK: - Background
+
+    private var backgroundView: some View {
+        ZStack {
+            Color(red: 0.039, green: 0.039, blue: 0.059)
+                .ignoresSafeArea()
+
+            RadialGradient(
+                colors: [activeGlow.opacity(0.4), Color.clear],
+                center: .center,
+                startRadius: 30,
+                endRadius: 400
+            )
+            .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - Control Buttons
+
+    private var controlButtons: some View {
+        HStack(spacing: 20) {
+            // Reset
+            controlButton(icon: "arrow.counterclockwise", size: 48, iconSize: 16) {
+                timer.reset()
+                if hapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }
+            }
+
+            // Play / Pause
+            Button {
+                timer.toggle()
+                if hapticsEnabled {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }
+            } label: {
+                Image(systemName: timer.isRunning ? "pause.fill" : "play.fill")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 68, height: 68)
+                    .background(
+                        Circle()
+                            .fill(activeAccent.opacity(0.2))
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(activeAccent.opacity(0.35), lineWidth: 0.5)
+                            )
+                    )
+                    .shadow(color: activeAccent.opacity(0.25), radius: 20, x: 0, y: 4)
+            }
+
+            // Skip
+            controlButton(icon: "forward.fill", size: 48, iconSize: 16) {
+                timer.skip()
+            }
+        }
+    }
+
+    private func controlButton(icon: String, size: CGFloat, iconSize: CGFloat, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: iconSize, weight: .medium))
+                .foregroundStyle(.white.opacity(0.4))
+                .frame(width: size, height: size)
+                .background(
+                    Circle()
+                        .fill(.white.opacity(0.05))
+                        .overlay(
+                            Circle().strokeBorder(.white.opacity(0.08), lineWidth: 0.5)
+                        )
+                )
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    FocusView(
+        soundEnabled: .constant(true),
+        hapticsEnabled: .constant(true),
+        timer: FocusTimer()
+    )
+    .preferredColorScheme(.dark)
 }

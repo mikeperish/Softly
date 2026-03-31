@@ -150,9 +150,8 @@ private let cloudMatrix: [[Int]] = [
 // MARK: - Pop Sound
 
 private enum PopSound {
-    /// Системний звук — короткий "pop" клік
     static func play() {
-        AudioServicesPlaySystemSound(1123)
+        AudioServicesPlaySystemSound(1306)
     }
 }
 
@@ -360,146 +359,6 @@ struct PopShapeIndicator: View {
     }
 }
 
-// MARK: - Progress Bar
-
-struct PopProgressBar: View {
-    let popped: Int
-    let total: Int
-    let width: CGFloat
-    let silhouette: BubbleSilhouette
-
-    var body: some View {
-        VStack(spacing: 5) {
-            progressCapsule
-            counterText
-        }
-    }
-
-    private var progressCapsule: some View {
-        let barWidth = width * 0.5
-        let fraction: CGFloat = total > 0 ? CGFloat(popped) / CGFloat(total) : 0
-        let fillWidth = max(3, barWidth * fraction)
-
-        return ZStack(alignment: .leading) {
-            Capsule()
-                .fill(Color.white.opacity(0.06))
-                .frame(width: barWidth, height: 3)
-
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [silhouette.accentColor, silhouette.secondaryColor],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: fillWidth, height: 3)
-                .animation(.spring(response: 0.3), value: popped)
-        }
-    }
-
-    private var counterText: some View {
-        Text("\(popped) / \(total)")
-            .font(.system(size: 11, weight: .medium, design: .monospaced))
-            .foregroundStyle(Color.white.opacity(0.25))
-    }
-}
-
-// MARK: - Settings Panel
-
-struct PopSettingsPanel: View {
-    @Binding var soundEnabled: Bool
-    @Binding var hapticsEnabled: Bool
-    let accent: Color
-    let onDismiss: () -> Void
-
-    var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-                panelContent
-                    .padding(.trailing, 20)
-            }
-            Spacer()
-        }
-        .padding(.top, 52)
-        .transition(
-            .asymmetric(
-                insertion: .scale(scale: 0.92, anchor: .topTrailing).combined(with: .opacity),
-                removal: .scale(scale: 0.96, anchor: .topTrailing).combined(with: .opacity)
-            )
-        )
-        .zIndex(10)
-        .onTapGesture { onDismiss() }
-    }
-
-    private var panelContent: some View {
-        VStack(spacing: 0) {
-            toggleRow(icon: "speaker.wave.2.fill", title: "Sound", isOn: $soundEnabled)
-            dividerLine
-            toggleRow(icon: "hand.tap.fill", title: "Haptics", isOn: $hapticsEnabled)
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
-                )
-        )
-        .frame(width: 190)
-    }
-
-    private var dividerLine: some View {
-        Rectangle()
-            .fill(Color.white.opacity(0.06))
-            .frame(height: 0.5)
-            .padding(.horizontal, 12)
-    }
-
-    private func toggleRow(icon: String, title: String, isOn: Binding<Bool>) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.5))
-                .frame(width: 22)
-
-            Text(title)
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.75))
-
-            Spacer()
-
-            PopToggle(isOn: isOn, accent: accent)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-    }
-}
-
-// MARK: - Custom Toggle
-
-struct PopToggle: View {
-    @Binding var isOn: Bool
-    var accent: Color
-
-    var body: some View {
-        ZStack {
-            Capsule()
-                .fill(isOn ? accent.opacity(0.5) : Color.white.opacity(0.12))
-                .frame(width: 40, height: 24)
-
-            Circle()
-                .fill(Color.white)
-                .frame(width: 18, height: 18)
-                .shadow(color: Color.black.opacity(0.2), radius: 1.5, y: 1)
-                .offset(x: isOn ? 8 : -8)
-        }
-        .animation(.spring(response: 0.22, dampingFraction: 0.7), value: isOn)
-        .onTapGesture { isOn.toggle() }
-    }
-}
-
 // MARK: - Transition Direction
 
 private enum SlideDirection {
@@ -513,15 +372,14 @@ private enum SlideDirection {
 
 struct PopView: View {
     @Binding var currentSilhouette: BubbleSilhouette
+    @Binding var soundEnabled: Bool
+    @Binding var hapticsEnabled: Bool
+
     @State private var bubbles: [PopBubble] = []
     @State private var poppedCount = 0
     @State private var totalBubbles = 0
     @State private var isTransitioning = false
-    @State private var showSettings = false
-    @State private var soundEnabled = true
-    @State private var hapticsEnabled = true
 
-    // Swipe transition
     @State private var gridOffset: CGFloat = 0
     @State private var gridOpacity: Double = 1.0
     @State private var dragOffset: CGFloat = 0
@@ -554,62 +412,10 @@ struct PopView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
                 }
-
-                ellipsisOverlay
-
-                if showSettings {
-                    PopSettingsPanel(
-                        soundEnabled: $soundEnabled,
-                        hapticsEnabled: $hapticsEnabled,
-                        accent: currentSilhouette.accentColor
-                    ) {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
-                            showSettings = false
-                        }
-                    }
-                }
             }
             .gesture(swipeGesture(screenWidth: screenWidth))
         }
         .onAppear { regenerateGrid() }
-    }
-
-    // MARK: - Title Row
-
-    private var titleRow: some View {
-        HStack(spacing: 6) {
-            SilhouetteIconView(silhouette: currentSilhouette, size: 15)
-
-            Text(currentSilhouette.displayName)
-                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.8))
-                .id(currentSilhouette.rawValue)
-        }
-        .animation(.easeInOut(duration: 0.35), value: currentSilhouette)
-    }
-
-    // MARK: - Ellipsis Overlay
-
-    private var ellipsisOverlay: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        showSettings.toggle()
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.5))
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.white.opacity(0.07)))
-                }
-                .padding(.trailing, 64)
-                .padding(.top, 16)
-            }
-            Spacer()
-        }
     }
 
     // MARK: - Background
@@ -672,7 +478,6 @@ struct PopView: View {
                 guard !isTransitioning else { return }
                 let isHorizontal = abs(value.translation.width) > abs(value.translation.height)
                 if isHorizontal {
-                    // Еластичний drag — сітка слідує за пальцем з опором
                     dragOffset = value.translation.width * 0.4
                 }
             }
@@ -692,7 +497,6 @@ struct PopView: View {
                 } else if value.translation.width > threshold {
                     transitionTo(currentSilhouette.previous, direction: .right, screenWidth: screenWidth)
                 } else {
-                    // Недостатній свайп — повернути назад
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         dragOffset = 0
                     }
@@ -729,7 +533,9 @@ struct PopView: View {
 
         if poppedCount >= totalBubbles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                transitionTo(currentSilhouette.next, direction: .left, screenWidth: UIScreen.main.bounds.width)
+                transitionTo(currentSilhouette.next, direction: .left, screenWidth: UIApplication.shared.connectedScenes
+                    .compactMap { $0 as? UIWindowScene }
+                    .first?.screen.bounds.width ?? 393)
             }
         }
     }
@@ -750,19 +556,16 @@ struct PopView: View {
 
         let slideOut = screenWidth * 0.6 * direction.outOffset
 
-        // Фаза 1: поточна сітка вилітає + fade out
         withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
             gridOffset = slideOut
             gridOpacity = 0
             dragOffset = 0
         }
 
-        // Фаза 2: підміна контенту + влітає з протилежного боку
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             currentSilhouette = target
             regenerateGrid()
 
-            // Стартова позиція нової сітки — з протилежного боку
             gridOffset = screenWidth * 0.5 * direction.inOffset
             gridOpacity = 0
 
@@ -781,6 +584,10 @@ struct PopView: View {
 // MARK: - Preview
 
 #Preview {
-    PopView(currentSilhouette: .constant(.heart))
-        .preferredColorScheme(.dark)
+    PopView(
+        currentSilhouette: .constant(.heart),
+        soundEnabled: .constant(true),
+        hapticsEnabled: .constant(true)
+    )
+    .preferredColorScheme(.dark)
 }

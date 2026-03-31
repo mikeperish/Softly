@@ -70,8 +70,8 @@ struct AppColors {
     static let cube    = Color(hex: "#9B6DFF") // фіолетовий
     static let pop     = Color(hex: "#FF6B9D") // рожевий/кораловий
     static let sound   = Color(hex: "#4ECDC4") // синій/бірюзовий
-    static let focus   = Color(hex: "#6BCB77") // зелений/м'ятний
-    static let physics = Color(hex: "#FFB347") // оранжевий/золотистий
+    static let focus   = Color(red: 0.9, green: 0.2, blue: 0.2)
+    static let physics = Color(red: 0.36, green: 0.79, blue: 0.65) // м'ятний (Aurora)
 }
 
 // MARK: - Color Extension

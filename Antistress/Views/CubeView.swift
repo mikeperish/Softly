@@ -17,14 +17,14 @@ private enum CubeConfig {
     static let flipEndDelay: Double = 0.2
 }
 
-// MARK: - Panel colors (6 кольорів = 6 граней, всі унікальні)
+// MARK: - Panel colors
 private let faceColors: [Color] = [
-    AppColors.cube.opacity(0.35),                       // 0 фіолетовий
-    AppColors.pop.opacity(0.45),                        // 1 рожевий
-    AppColors.sound.opacity(0.45),                      // 2 бірюзовий
-    AppColors.focus.opacity(0.45),                      // 3 зелений
-    AppColors.physics.opacity(0.45),                    // 4 оранжевий
-    Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.45), // 5 синій #4DA6FF
+    AppColors.cube.opacity(0.35),
+    AppColors.pop.opacity(0.45),
+    AppColors.sound.opacity(0.45),
+    AppColors.focus.opacity(0.45),
+    AppColors.physics.opacity(0.45),
+    Color(red: 0.30, green: 0.65, blue: 1.0).opacity(0.45),
 ]
 
 private let faceBorders: [Color] = [
@@ -33,13 +33,13 @@ private let faceBorders: [Color] = [
     AppColors.sound,
     AppColors.focus,
     AppColors.physics,
-    Color(red: 0.30, green: 0.65, blue: 1.0),          // 5 синій
+    Color(red: 0.30, green: 0.65, blue: 1.0),
 ]
 
 // MARK: - Flip Sound
 private enum FlipSound {
     static func play() {
-        AudioServicesPlaySystemSound(1104)
+        AudioServicesPlaySystemSound(1156)
     }
 }
 
@@ -47,17 +47,12 @@ private enum FlipSound {
 private enum SwipeDirection {
     case up, down, left, right
 
-    /// Ротація масиву [front, back, left, right, top, bottom]
     func rotated(_ f: [Int]) -> [Int] {
         switch self {
-        case .down:
-            return [f[4], f[5], f[2], f[3], f[1], f[0]]
-        case .up:
-            return [f[5], f[4], f[2], f[3], f[0], f[1]]
-        case .right:
-            return [f[2], f[3], f[1], f[0], f[4], f[5]]
-        case .left:
-            return [f[3], f[2], f[0], f[1], f[4], f[5]]
+        case .down:  return [f[4], f[5], f[2], f[3], f[1], f[0]]
+        case .up:    return [f[5], f[4], f[2], f[3], f[0], f[1]]
+        case .right: return [f[2], f[3], f[1], f[0], f[4], f[5]]
+        case .left:  return [f[3], f[2], f[0], f[1], f[4], f[5]]
         }
     }
 
@@ -72,11 +67,8 @@ private enum SwipeDirection {
 }
 
 // MARK: - Face Initializer
-/// 6 кольорів, 6 граней — кожна грань гарантовано унікальна.
-/// Будь-який свайп в будь-якому напрямку завжди дає новий колір.
 private func makeUniqueFaces() -> [Int] {
     let shuffled = Array(0..<faceColors.count).shuffled()
-    // [front, back, left, right, top, bottom]
     return [shuffled[0], shuffled[1], shuffled[2], shuffled[3], shuffled[4], shuffled[5]]
 }
 
@@ -86,7 +78,6 @@ struct CubePanel: View {
     var hapticsEnabled: Bool = true
     var soundEnabled: Bool = true
 
-    /// 6 граней куба: [front, back, left, right, top, bottom]
     @State private var faces: [Int] = makeUniqueFaces()
     @State private var hasFlipped = false
     @State private var flipAngle: Double = 0
@@ -140,8 +131,6 @@ struct CubePanel: View {
             .animation(.spring(response: 0.2), value: isDragging)
             .gesture(dragGesture)
     }
-
-    // MARK: - Gesture
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 12)
@@ -203,55 +192,10 @@ struct CubePanel: View {
     }
 }
 
-// MARK: - Cube Settings
-private struct CubeSettings: View {
-    @Binding var soundEnabled: Bool
-    @Binding var hapticsEnabled: Bool
-
-    var body: some View {
-        VStack(spacing: 0) {
-            row(icon: soundEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                title: "Sound", binding: $soundEnabled)
-            Divider().background(.white.opacity(0.1))
-            row(icon: hapticsEnabled ? "iphone.radiowaves.left.and.right" : "iphone.slash",
-                title: "Haptics", binding: $hapticsEnabled)
-        }
-        .frame(width: 190)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(.white.opacity(0.15), lineWidth: 1)
-                }
-        }
-        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 8)
-    }
-
-    private func row(icon: String, title: String, binding: Binding<Bool>) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.system(size: 13))
-                .foregroundStyle(binding.wrappedValue ? AppColors.cube : .white.opacity(0.3))
-                .frame(width: 22)
-            Text(title)
-                .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.8))
-            Spacer()
-            Toggle("", isOn: binding)
-                .labelsHidden()
-                .tint(AppColors.cube)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-    }
-}
-
 // MARK: - CubeView
 struct CubeView: View {
-    @State private var soundEnabled = true
-    @State private var hapticsEnabled = true
-    @State private var showSettings = false
+    @Binding var soundEnabled: Bool
+    @Binding var hapticsEnabled: Bool
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: CubeConfig.spacing),
@@ -277,49 +221,13 @@ struct CubeView: View {
                 .padding(.horizontal, CubeConfig.spacing)
                 Spacer()
             }
-
-            VStack {
-                HStack {
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 8) {
-                        Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                showSettings.toggle()
-                            }
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.white.opacity(0.5))
-                                .frame(width: 36, height: 36)
-                                .background(Circle().fill(.white.opacity(0.07)))
-                        }
-
-                        if showSettings {
-                            CubeSettings(
-                                soundEnabled: $soundEnabled,
-                                hapticsEnabled: $hapticsEnabled
-                            )
-                            .transition(.asymmetric(
-                                insertion: .scale(scale: 0.9, anchor: .topTrailing)
-                                    .combined(with: .opacity),
-                                removal: .scale(scale: 0.9, anchor: .topTrailing)
-                                    .combined(with: .opacity)
-                            ))
-                        }
-                    }
-                    .padding(.top, 16)
-                    .padding(.trailing, 64)
-                }
-                Spacer()
-            }
-        }
-        .onTapGesture {
-            if showSettings {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                    showSettings = false
-                }
-            }
         }
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    CubeView(soundEnabled: .constant(true), hapticsEnabled: .constant(true))
+        .preferredColorScheme(.dark)
 }
