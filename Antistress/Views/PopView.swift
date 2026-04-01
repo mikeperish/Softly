@@ -20,6 +20,13 @@ enum BubbleSilhouette: Int, CaseIterable {
         }
     }
 
+    var isFree: Bool {
+        switch self {
+        case .heart: return true
+        case .cactus, .cloud: return false
+        }
+    }
+
     var iconSymbol: String? {
         switch self {
         case .heart: return "heart.fill"
@@ -78,7 +85,7 @@ enum BubbleSilhouette: Int, CaseIterable {
     }
 }
 
-// MARK: - Shape Hit-Test (Pixel Matrices 11×13)
+// MARK: - Shape Hit-Test (Pixel Matrices 11x13)
 
 func shapeColorCode(_ shape: BubbleSilhouette, nx: Double, ny: Double) -> Int {
     let col = Int((nx + 1.0) / 2.0 * 11.0)
@@ -339,27 +346,42 @@ struct SilhouetteIconView: View {
     }
 }
 
-// MARK: - Text Shape Picker
+// MARK: - Text Shape Picker (with premium locks)
 
 struct PopShapePicker: View {
     let current: BubbleSilhouette
+    let isPremium: Bool
     let onSelect: (BubbleSilhouette) -> Void
+    let onPremiumTap: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(Array(BubbleSilhouette.allCases.enumerated()), id: \.element.rawValue) { index, shape in
                 let isActive = shape == current
+                let isLocked = !shape.isFree && !isPremium
 
                 Button {
-                    if shape != current {
+                    if isLocked {
+                        onPremiumTap()
+                    } else if shape != current {
                         onSelect(shape)
                     }
                 } label: {
-                    Text(shape.displayName)
-                        .font(.system(size: 15, weight: isActive ? .semibold : .regular, design: .rounded))
-                        .foregroundStyle(isActive ? shape.accentColor : .white.opacity(0.3))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                    HStack(spacing: 4) {
+                        if isLocked {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.2))
+                        }
+                        Text(shape.displayName)
+                            .font(.system(size: 15, weight: isActive ? .semibold : .regular, design: .rounded))
+                            .foregroundStyle(
+                                isLocked ? .white.opacity(0.15) :
+                                isActive ? shape.accentColor : .white.opacity(0.3)
+                            )
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
                 }
                 .animation(.easeInOut(duration: 0.25), value: isActive)
 
@@ -388,6 +410,7 @@ struct PopView: View {
     @Binding var currentSilhouette: BubbleSilhouette
     @Binding var soundEnabled: Bool
     @Binding var hapticsEnabled: Bool
+    @Environment(SubscriptionManager.self) private var subscriptionManager
 
     // Per-silhouette bubble state
     @State private var bubbleStates: [BubbleSilhouette: [PopBubble]] = [:]
@@ -401,6 +424,9 @@ struct PopView: View {
 
     // Reset button
     @State private var showResetConfirmation = false
+
+    // Premium paywall
+    @State private var showPaywall = false
 
     private let cols = 11
     private let rows = 13
@@ -441,11 +467,21 @@ struct PopView: View {
                             .transition(.opacity.combined(with: .scale(scale: 0.9)))
                     }
 
-                    // Text picker
-                    PopShapePicker(current: currentSilhouette) { target in
-                        let dir: SlideDirection = target.rawValue > currentSilhouette.rawValue ? .left : .right
-                        transitionTo(target, direction: dir, screenWidth: screenWidth)
-                    }
+                    // Text picker with locks
+                    PopShapePicker(
+                        current: currentSilhouette,
+                        isPremium: subscriptionManager.isPremium,
+                        onSelect: { target in
+                            let dir: SlideDirection = target.rawValue > currentSilhouette.rawValue ? .left : .right
+                            transitionTo(target, direction: dir, screenWidth: screenWidth)
+                        },
+                        onPremiumTap: {
+                            showPaywall = true
+                            if hapticsEnabled {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        }
+                    )
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
                 }
@@ -454,6 +490,9 @@ struct PopView: View {
         }
         .onAppear { ensureGrid(for: currentSilhouette) }
         .animation(.easeInOut(duration: 0.3), value: poppedCount)
+        .sheet(isPresented: $showPaywall) {
+            PremiumView()
+        }
     }
 
     // MARK: - Reset Button
@@ -570,9 +609,31 @@ struct PopView: View {
 
                 let threshold: CGFloat = 50
                 if value.translation.width < -threshold {
-                    transitionTo(currentSilhouette.next, direction: .left, screenWidth: screenWidth)
+                    let target = currentSilhouette.next
+                    if !target.isFree && !subscriptionManager.isPremium {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            dragOffset = 0
+                        }
+                        showPaywall = true
+                        if hapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    } else {
+                        transitionTo(target, direction: .left, screenWidth: screenWidth)
+                    }
                 } else if value.translation.width > threshold {
-                    transitionTo(currentSilhouette.previous, direction: .right, screenWidth: screenWidth)
+                    let target = currentSilhouette.previous
+                    if !target.isFree && !subscriptionManager.isPremium {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            dragOffset = 0
+                        }
+                        showPaywall = true
+                        if hapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    } else {
+                        transitionTo(target, direction: .right, screenWidth: screenWidth)
+                    }
                 } else {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         dragOffset = 0
@@ -612,7 +673,6 @@ struct PopView: View {
     }
 
     private func handlePop(bubbleId: Int) {
-        // Mark bubble as popped in state
         if var stateBubbles = bubbleStates[currentSilhouette],
            let index = stateBubbles.firstIndex(where: { $0.id == bubbleId }) {
             stateBubbles[index] = PopBubble(
@@ -629,7 +689,15 @@ struct PopView: View {
 
         if poppedCount >= totalBubbles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                transitionTo(currentSilhouette.next, direction: .left, screenWidth: UIApplication.shared.connectedScenes
+                var target = currentSilhouette.next
+                // Skip premium shapes if not premium
+                if !target.isFree && !subscriptionManager.isPremium {
+                    for _ in 0..<BubbleSilhouette.allCases.count {
+                        if target.isFree || subscriptionManager.isPremium { break }
+                        target = target.next
+                    }
+                }
+                transitionTo(target, direction: .left, screenWidth: UIApplication.shared.connectedScenes
                     .compactMap { $0 as? UIWindowScene }
                     .first?.screen.bounds.width ?? 393)
             }
@@ -650,7 +718,6 @@ struct PopView: View {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
 
-        // Ensure target grid exists
         ensureGrid(for: target)
 
         let slideOut = screenWidth * 0.5 * direction.outOffset
@@ -687,5 +754,6 @@ struct PopView: View {
         soundEnabled: .constant(true),
         hapticsEnabled: .constant(true)
     )
+    .environment(SubscriptionManager.shared)
     .preferredColorScheme(.dark)
 }
