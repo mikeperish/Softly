@@ -16,6 +16,13 @@ struct SoundView: View {
             // MARK: - Touch Area
             touchLayer
             
+            // MARK: - Idle Hint (when not playing)
+            if !engine.isPlaying {
+                idleHint
+                    .transition(.opacity)
+                    .allowsHitTesting(false)
+            }
+            
             // MARK: - Ripples from finger
             RippleView(
                 ripples: touchRipples,
@@ -41,6 +48,25 @@ struct SoundView: View {
             
             // MARK: - Settings Overlay
             settingsOverlay
+        }
+        .animation(.easeInOut(duration: 0.5), value: engine.isPlaying)
+    }
+}
+
+// MARK: - Idle Hint
+private extension SoundView {
+    var idleHint: some View {
+        VStack(spacing: 16) {
+            // Pulsing waveform icon
+            Image(systemName: "waveform")
+                .font(.system(size: 44, weight: .thin))
+                .foregroundStyle(AppColors.sound.opacity(0.35))
+                .symbolEffect(.pulse, options: .repeating)
+            
+            Text("Touch to begin")
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .foregroundStyle(.white.opacity(0.25))
+            
         }
     }
 }
@@ -71,7 +97,10 @@ private extension SoundView {
             }
         }
         
-        guard engine.isPlaying else { return }
+        // Auto-start on first touch
+        if !engine.isPlaying {
+            engine.play()
+        }
         
         let toneValue = Float(point.x / size.width).clamped(to: 0...1)
         let volumeValue = Float(point.y / size.height).clamped(to: 0...1)
