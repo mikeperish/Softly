@@ -9,68 +9,89 @@ import AudioToolbox
 
 enum BubbleSilhouette: Int, CaseIterable {
     case heart = 0
-    case cactus = 1
-    case cloud = 2
+    case paw = 1
+    case cactus = 2
+    case cloud = 3
+    case moon = 4
+    case diamond = 5
+    case flower = 6
+    case cat = 7
+    case mushroom = 8
+    case fish = 9
 
     var displayName: String {
         switch self {
-        case .heart:  "Heart"
-        case .cactus: "Cactus"
-        case .cloud:  "Cloud"
+        case .heart:    "Heart"
+        case .paw:     "Paw"
+        case .cactus:   "Cactus"
+        case .cloud:    "Cloud"
+        case .moon:     "Moon"
+        case .diamond:  "Diamond"
+        case .flower:   "Flower"
+        case .cat:      "Cat"
+        case .mushroom: "Mushroom"
+        case .fish:     "Fish"
         }
     }
 
     var isFree: Bool {
         switch self {
-        case .heart: return true
-        case .cactus, .cloud: return false
-        }
-    }
-
-    var iconSymbol: String? {
-        switch self {
-        case .heart: return "heart.fill"
-        case .cloud: return "cloud.fill"
-        case .cactus: return nil
-        }
-    }
-
-    var iconEmoji: String? {
-        switch self {
-        case .cactus: return "🌵"
-        default: return nil
+        case .heart, .paw: return true
+        default: return false
         }
     }
 
     var accentColor: Color {
         switch self {
-        case .heart:  Color(red: 1.0, green: 0.2, blue: 0.3)
-        case .cactus: Color(red: 0.2, green: 0.75, blue: 0.3)
-        case .cloud:  Color(red: 0.45, green: 0.70, blue: 1.0)
+        case .heart:    Color(red: 1.0, green: 0.2, blue: 0.3)
+        case .paw:     Color(red: 0.9, green: 0.65, blue: 0.35)
+        case .cactus:   Color(red: 0.2, green: 0.75, blue: 0.3)
+        case .cloud:    Color(red: 0.45, green: 0.70, blue: 1.0)
+        case .moon:     Color(red: 0.7, green: 0.6, blue: 1.0)
+        case .diamond:  Color(red: 0.4, green: 0.85, blue: 0.95)
+        case .flower:   Color(red: 0.95, green: 0.45, blue: 0.65)
+        case .cat:      Color(red: 0.75, green: 0.55, blue: 0.85)
+        case .mushroom: Color(red: 0.85, green: 0.35, blue: 0.35)
+        case .fish:     Color(red: 0.3, green: 0.75, blue: 0.85)
         }
     }
 
     var secondaryColor: Color {
         switch self {
-        case .heart:  Color(red: 0.5, green: 0.05, blue: 0.15)
-        case .cactus: Color(red: 0.1, green: 0.35, blue: 0.15)
-        case .cloud:  Color(red: 0.18, green: 0.35, blue: 0.65)
+        case .heart:    Color(red: 0.5, green: 0.05, blue: 0.15)
+        case .paw:     Color(red: 0.45, green: 0.3, blue: 0.15)
+        case .cactus:   Color(red: 0.1, green: 0.35, blue: 0.15)
+        case .cloud:    Color(red: 0.18, green: 0.35, blue: 0.65)
+        case .moon:     Color(red: 0.3, green: 0.25, blue: 0.55)
+        case .diamond:  Color(red: 0.15, green: 0.4, blue: 0.5)
+        case .flower:   Color(red: 0.5, green: 0.2, blue: 0.3)
+        case .cat:      Color(red: 0.35, green: 0.25, blue: 0.45)
+        case .mushroom: Color(red: 0.45, green: 0.15, blue: 0.15)
+        case .fish:     Color(red: 0.12, green: 0.35, blue: 0.45)
         }
     }
 
     var bgGlow: Color {
         switch self {
-        case .heart:  Color(red: 0.40, green: 0.08, blue: 0.15)
-        case .cactus: Color(red: 0.05, green: 0.20, blue: 0.10)
-        case .cloud:  Color(red: 0.08, green: 0.15, blue: 0.30)
+        case .heart:    Color(red: 0.40, green: 0.08, blue: 0.15)
+        case .paw:     Color(red: 0.22, green: 0.15, blue: 0.08)
+        case .cactus:   Color(red: 0.05, green: 0.20, blue: 0.10)
+        case .cloud:    Color(red: 0.08, green: 0.15, blue: 0.30)
+        case .moon:     Color(red: 0.15, green: 0.12, blue: 0.30)
+        case .diamond:  Color(red: 0.08, green: 0.20, blue: 0.25)
+        case .flower:   Color(red: 0.25, green: 0.10, blue: 0.15)
+        case .cat:      Color(red: 0.18, green: 0.12, blue: 0.22)
+        case .mushroom: Color(red: 0.25, green: 0.08, blue: 0.08)
+        case .fish:     Color(red: 0.06, green: 0.18, blue: 0.22)
         }
     }
 
     var bubbleCornerFraction: CGFloat {
         switch self {
-        case .heart:  1.0
-        case .cactus: 0.35
-        case .cloud:  1.0
+        case .heart, .cloud, .moon, .flower, .fish: return 1.0
+        case .cactus, .mushroom: return 0.35
+        case .diamond: return 0.45
+        case .cat, .paw: return 0.5
         }
     }
 
@@ -91,67 +112,166 @@ func shapeColorCode(_ shape: BubbleSilhouette, nx: Double, ny: Double) -> Int {
     let col = Int((nx + 1.0) / 2.0 * 11.0)
     let row = Int((ny + 1.0) / 2.0 * 13.0)
     guard col >= 0, col < 11, row >= 0, row < 13 else { return 0 }
-
-    let matrix: [[Int]]
-    switch shape {
-    case .heart:  matrix = heartMatrix
-    case .cactus: matrix = cactusMatrix
-    case .cloud:  matrix = cloudMatrix
-    }
-
-    return matrix[row][col]
+    return shapeMatrices[shape]![row][col]
 }
 
 func isInsideShape(_ shape: BubbleSilhouette, nx: Double, ny: Double) -> Bool {
     return shapeColorCode(shape, nx: nx, ny: ny) != 0
 }
 
-private let heartMatrix: [[Int]] = [
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,1,1,0,0,0,1,1,0,0],
-    [0,1,3,3,1,0,1,1,2,1,0],
-    [1,3,3,1,1,0,1,1,1,2,1],
-    [1,3,1,1,1,1,1,1,1,2,1],
-    [1,1,1,1,1,1,1,1,2,2,1],
-    [0,1,1,1,1,1,1,2,2,1,0],
-    [0,0,1,1,1,1,2,2,1,0,0],
-    [0,0,0,1,1,2,2,1,0,0,0],
-    [0,0,0,0,1,2,1,0,0,0,0],
-    [0,0,0,0,0,1,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-]
+// MARK: - Pixel Matrices (11x13 each)
 
-private let cactusMatrix: [[Int]] = [
-    [0,0,0,0,0,1,1,0,0,0,0],
-    [0,0,0,0,0,3,1,0,0,0,0],
-    [0,1,1,0,0,3,1,0,0,0,0],
-    [0,3,1,0,0,3,1,0,1,1,0],
-    [0,3,1,1,1,1,1,0,3,1,0],
-    [0,0,0,0,0,1,1,1,1,1,0],
-    [0,0,0,0,0,3,1,0,0,0,0],
-    [0,0,0,0,0,3,1,0,0,0,0],
-    [0,0,0,0,0,3,1,0,0,0,0],
-    [0,0,0,0,0,3,1,0,0,0,0],
-    [0,0,0,1,1,1,1,1,1,0,0],
-    [0,0,0,2,2,2,2,2,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-]
-
-private let cloudMatrix: [[Int]] = [
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,1,1,0,0,0,0,0,0],
-    [0,0,1,3,3,1,0,1,1,0,0],
-    [0,0,1,3,1,1,1,3,1,1,0],
-    [0,1,1,1,1,1,1,3,1,1,0],
-    [0,1,3,1,1,1,1,1,1,1,0],
-    [1,3,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,2,1],
-    [1,1,1,1,1,1,1,1,2,2,1],
-    [0,1,2,2,1,2,2,2,2,1,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
+private let shapeMatrices: [BubbleSilhouette: [[Int]]] = [
+    .heart: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,1,1,0,0,0,1,1,0,0],
+        [0,1,3,3,1,0,1,1,2,1,0],
+        [1,3,3,1,1,0,1,1,1,2,1],
+        [1,3,1,1,1,1,1,1,1,2,1],
+        [1,1,1,1,1,1,1,1,2,2,1],
+        [0,1,1,1,1,1,1,2,2,1,0],
+        [0,0,1,1,1,1,2,2,1,0,0],
+        [0,0,0,1,1,2,2,1,0,0,0],
+        [0,0,0,0,1,2,1,0,0,0,0],
+        [0,0,0,0,0,1,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .paw: [
+        [0,0,0,0,0,2,0,0,0,0,0],
+        [0,0,0,0,2,3,2,0,0,0,0],
+        [0,0,0,0,2,3,2,0,0,0,0],
+        [0,0,2,0,2,1,2,0,2,0,0],
+        [0,2,3,2,0,2,0,2,3,2,0],
+        [0,2,1,2,0,0,0,2,1,2,0],
+        [0,0,2,0,0,0,0,0,2,0,0],
+        [0,0,0,2,2,2,2,2,0,0,0],
+        [0,0,3,3,1,1,1,1,2,0,0],
+        [0,2,3,3,1,1,1,1,1,2,0],
+        [0,2,3,1,1,1,1,1,1,2,0],
+        [0,0,2,1,1,1,1,1,2,0,0],
+        [0,0,0,2,1,1,1,2,0,0,0],
+    ],
+    .cactus: [
+        [0,0,0,0,0,1,1,0,0,0,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,1,1,0,0,3,1,0,0,0,0],
+        [0,3,1,0,0,3,1,0,1,1,0],
+        [0,3,1,1,1,1,1,1,3,1,0],
+        [0,0,0,0,0,1,1,1,1,1,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,0,0,0,0,3,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,1,0,0],
+        [0,0,0,2,2,2,2,2,1,0,0],
+    ],
+    .cloud: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,1,0,0,0,0,0,0],
+        [0,0,1,3,3,1,0,1,1,0,0],
+        [0,0,1,3,1,1,1,3,1,1,0],
+        [0,1,1,1,1,1,1,3,1,1,0],
+        [0,1,3,1,1,1,1,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,2,1],
+        [1,1,1,1,1,1,1,1,2,2,1],
+        [0,1,2,2,1,2,2,2,2,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .moon: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,1,1,1,0,0,0],
+        [0,0,0,0,1,3,3,1,1,0,0],
+        [0,0,0,1,3,3,1,0,0,0,0],
+        [0,0,1,3,1,1,0,0,0,0,0],
+        [0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0,0,0,0,0],
+        [0,0,1,1,1,1,0,0,0,0,0],
+        [0,0,0,1,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,2,1,1,0,0],
+        [0,0,0,0,0,1,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .diamond: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,2,2,2,2,2,0,0,0],
+        [0,0,2,3,3,2,1,1,2,0,0],
+        [0,2,3,1,3,2,1,1,1,2,0],
+        [2,3,2,3,2,3,2,1,1,1,2],
+        [3,3,3,3,3,3,3,3,3,3,3],
+        [2,3,1,2,1,1,1,2,1,1,2],
+        [0,2,3,1,2,1,2,1,1,2,0],
+        [0,0,2,3,2,1,2,1,2,0,0],
+        [0,0,0,2,3,2,1,2,0,0,0],
+        [0,0,0,0,2,3,2,0,0,0,0],
+        [0,0,0,0,0,2,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .flower: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,1,1,1,0,0,0,0],
+        [0,0,0,1,3,3,1,1,0,0,0],
+        [0,1,1,0,1,1,1,0,1,1,0],
+        [1,3,1,0,0,0,0,0,1,2,1],
+        [1,1,1,0,1,1,1,0,1,1,1],
+        [0,1,0,1,3,1,2,1,0,1,0],
+        [0,0,0,1,1,1,1,1,0,0,0],
+        [0,1,1,0,1,1,1,0,1,1,0],
+        [1,3,1,0,0,1,0,0,1,2,1],
+        [1,1,1,0,0,1,0,0,1,1,1],
+        [0,1,1,0,0,1,0,0,1,1,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .cat: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,1,1,0,0,0,0,0,1,1,0],
+        [0,3,1,1,0,0,0,1,1,2,0],
+        [0,3,1,1,0,0,0,1,1,2,0],
+        [0,1,1,1,1,1,1,1,1,1,0],
+        [0,1,3,1,1,1,1,1,1,1,0],
+        [0,1,1,3,1,1,1,2,1,1,0],
+        [0,1,1,1,1,1,1,1,1,1,0],
+        [0,1,1,1,1,1,1,1,1,1,0],
+        [0,0,1,1,1,1,1,1,1,0,0],
+        [0,0,0,1,1,1,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .mushroom: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,1,1,1,0,0,0,0],
+        [0,0,0,1,3,3,3,1,0,0,0],
+        [0,0,1,3,3,1,1,1,1,0,0],
+        [0,1,1,3,1,1,3,1,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,2,1],
+        [0,2,2,2,1,1,1,2,2,2,0],
+        [0,0,0,0,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,1,0,0,0,0],
+        [0,0,0,0,1,1,1,0,0,0,0],
+        [0,0,0,1,1,1,1,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
+    .fish: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,1,1,1,1,0,0,0],
+        [1,1,0,1,3,3,1,1,1,0,0],
+        [1,1,1,1,3,1,1,3,1,1,0],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,0],
+        [1,1,0,1,1,1,2,2,1,0,0],
+        [0,0,0,0,1,2,2,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+    ],
 ]
 
 // MARK: - Pop Sound
@@ -179,7 +299,9 @@ struct BubbleCell: View {
     let size: CGFloat
     let colorCode: Int
     let isAlreadyPopped: Bool
+    let isLocked: Bool
     let onPop: () -> Void
+    let onLockedTap: () -> Void
     let hapticsEnabled: Bool
     let soundEnabled: Bool
 
@@ -276,7 +398,15 @@ struct BubbleCell: View {
                     }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         guard popScale < 1.0 else { return }
-                        performPop()
+                        if isLocked {
+                            // Bounce back and show paywall
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                popScale = 1.0
+                            }
+                            onLockedTap()
+                        } else {
+                            performPop()
+                        }
                     }
                 }
             }
@@ -335,60 +465,69 @@ struct SilhouetteIconView: View {
     let size: CGFloat
 
     var body: some View {
-        if let emoji = silhouette.iconEmoji {
-            Text(emoji)
-                .font(.system(size: size))
-        } else if let symbol = silhouette.iconSymbol {
-            Image(systemName: symbol)
-                .font(.system(size: size, weight: .semibold))
-                .foregroundStyle(silhouette.accentColor)
-        }
+        Text(silhouette.displayName.prefix(1))
+            .font(.system(size: size, weight: .semibold, design: .rounded))
+            .foregroundStyle(silhouette.accentColor)
     }
 }
 
-// MARK: - Text Shape Picker (with premium locks)
+// MARK: - Horizontal Scroll Picker
 
 struct PopShapePicker: View {
     let current: BubbleSilhouette
     let isPremium: Bool
     let onSelect: (BubbleSilhouette) -> Void
-    let onPremiumTap: () -> Void
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(Array(BubbleSilhouette.allCases.enumerated()), id: \.element.rawValue) { index, shape in
-                let isActive = shape == current
-                let isLocked = !shape.isFree && !isPremium
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(BubbleSilhouette.allCases, id: \.rawValue) { shape in
+                        let isActive = shape == current
+                        let isLocked = !shape.isFree && !isPremium
 
-                Button {
-                    if isLocked {
-                        onPremiumTap()
-                    } else if shape != current {
-                        onSelect(shape)
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        if isLocked {
-                            Image(systemName: "lock.fill")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.white.opacity(0.2))
-                        }
-                        Text(shape.displayName)
-                            .font(.system(size: 15, weight: isActive ? .semibold : .regular, design: .rounded))
-                            .foregroundStyle(
-                                isLocked ? .white.opacity(0.15) :
-                                isActive ? shape.accentColor : .white.opacity(0.3)
+                        Button {
+                            if shape != current {
+                                onSelect(shape)
+                            }
+                        } label: {
+                            HStack(spacing: 5) {
+                                if isLocked {
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 9))
+                                        .foregroundStyle(.white.opacity(0.2))
+                                }
+                                Text(shape.displayName)
+                                    .font(.system(size: 14, weight: isActive ? .semibold : .regular, design: .rounded))
+                                    .foregroundStyle(
+                                        isActive ? .white :
+                                        isLocked ? .white.opacity(0.2) : .white.opacity(0.35)
+                                    )
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(isActive ? shape.accentColor.opacity(0.25) : .clear)
+                                    .overlay(
+                                        Capsule()
+                                            .strokeBorder(
+                                                isActive ? shape.accentColor.opacity(0.4) :
+                                                isLocked ? .white.opacity(0.05) : .white.opacity(0.08),
+                                                lineWidth: 0.5
+                                            )
+                                    )
                             )
+                        }
+                        .id(shape.rawValue)
+                        .animation(.easeInOut(duration: 0.25), value: isActive)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
                 }
-                .animation(.easeInOut(duration: 0.25), value: isActive)
-
-                if index < BubbleSilhouette.allCases.count - 1 {
-                    Text("·")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.15))
+                .padding(.horizontal, 20)
+            }
+            .onChange(of: current) { _, newValue in
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    proxy.scrollTo(newValue.rawValue, anchor: .center)
                 }
             }
         }
@@ -443,6 +582,10 @@ struct PopView: View {
         totalCounts[currentSilhouette] ?? 0
     }
 
+    private var isCurrentLocked: Bool {
+        !currentSilhouette.isFree && !subscriptionManager.isPremium
+    }
+
     var body: some View {
         GeometryReader { geo in
             let layout = PopGridLayout(geoSize: geo.size, cols: cols, rows: rows)
@@ -461,29 +604,21 @@ struct PopView: View {
 
                     Spacer()
 
-                    // Reset button (only when some bubbles are popped)
-                    if poppedCount > 0 {
-                        resetButton
-                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                    }
+                    // Reset button (only for free silhouettes)
+                    resetButton
+                        .opacity(!isCurrentLocked && poppedCount > 0 ? 1 : 0)
+                        .allowsHitTesting(!isCurrentLocked && poppedCount > 0)
 
-                    // Text picker with locks
+                    // Horizontal scroll picker
                     PopShapePicker(
                         current: currentSilhouette,
                         isPremium: subscriptionManager.isPremium,
                         onSelect: { target in
                             let dir: SlideDirection = target.rawValue > currentSilhouette.rawValue ? .left : .right
                             transitionTo(target, direction: dir, screenWidth: screenWidth)
-                        },
-                        onPremiumTap: {
-                            showPaywall = true
-                            if hapticsEnabled {
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            }
                         }
                     )
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 20)
                 }
             }
             .gesture(swipeGesture(screenWidth: screenWidth))
@@ -573,7 +708,14 @@ struct PopView: View {
                     size: cellSize,
                     colorCode: bubble.colorCode,
                     isAlreadyPopped: bubble.isPopped,
+                    isLocked: isCurrentLocked,
                     onPop: { handlePop(bubbleId: bubble.id) },
+                    onLockedTap: {
+                        showPaywall = true
+                        if hapticsEnabled {
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        }
+                    },
                     hapticsEnabled: hapticsEnabled,
                     soundEnabled: soundEnabled
                 )
@@ -609,31 +751,9 @@ struct PopView: View {
 
                 let threshold: CGFloat = 50
                 if value.translation.width < -threshold {
-                    let target = currentSilhouette.next
-                    if !target.isFree && !subscriptionManager.isPremium {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            dragOffset = 0
-                        }
-                        showPaywall = true
-                        if hapticsEnabled {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        }
-                    } else {
-                        transitionTo(target, direction: .left, screenWidth: screenWidth)
-                    }
+                    transitionTo(currentSilhouette.next, direction: .left, screenWidth: screenWidth)
                 } else if value.translation.width > threshold {
-                    let target = currentSilhouette.previous
-                    if !target.isFree && !subscriptionManager.isPremium {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            dragOffset = 0
-                        }
-                        showPaywall = true
-                        if hapticsEnabled {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        }
-                    } else {
-                        transitionTo(target, direction: .right, screenWidth: screenWidth)
-                    }
+                    transitionTo(currentSilhouette.previous, direction: .right, screenWidth: screenWidth)
                 } else {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         dragOffset = 0
@@ -689,15 +809,7 @@ struct PopView: View {
 
         if poppedCount >= totalBubbles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                var target = currentSilhouette.next
-                // Skip premium shapes if not premium
-                if !target.isFree && !subscriptionManager.isPremium {
-                    for _ in 0..<BubbleSilhouette.allCases.count {
-                        if target.isFree || subscriptionManager.isPremium { break }
-                        target = target.next
-                    }
-                }
-                transitionTo(target, direction: .left, screenWidth: UIApplication.shared.connectedScenes
+                transitionTo(currentSilhouette.next, direction: .left, screenWidth: UIApplication.shared.connectedScenes
                     .compactMap { $0 as? UIWindowScene }
                     .first?.screen.bounds.width ?? 393)
             }
