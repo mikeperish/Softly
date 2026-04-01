@@ -133,6 +133,7 @@ private let cactusMatrix: [[Int]] = [
 
 private let cloudMatrix: [[Int]] = [
     [0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,1,1,0,0,0,0,0,0],
     [0,0,1,3,3,1,0,1,1,0,0],
     [0,0,1,3,1,1,1,3,1,1,0],
@@ -142,7 +143,6 @@ private let cloudMatrix: [[Int]] = [
     [1,1,1,1,1,1,1,1,1,2,1],
     [1,1,1,1,1,1,1,1,2,2,1],
     [0,1,2,2,1,2,2,2,2,1,0],
-    [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0,0,0,0],
 ]
@@ -162,6 +162,7 @@ struct PopBubble: Identifiable {
     let col: Int
     let row: Int
     let colorCode: Int
+    var isPopped: Bool = false
 }
 
 // MARK: - Single Bubble View
@@ -170,12 +171,12 @@ struct BubbleCell: View {
     let silhouette: BubbleSilhouette
     let size: CGFloat
     let colorCode: Int
+    let isAlreadyPopped: Bool
     let onPop: () -> Void
     let hapticsEnabled: Bool
     let soundEnabled: Bool
 
     @State private var isPopped = false
-    @State private var isRegrowing = false
     @State private var popScale: CGFloat = 1.0
 
     private var cornerRadius: CGFloat {
@@ -203,12 +204,17 @@ struct BubbleCell: View {
             if !isPopped {
                 bubbleShape
                     .scaleEffect(popScale)
-                    .opacity(isRegrowing ? 0.0 : 1.0)
                     .gesture(pressGesture)
             }
         }
         .frame(width: size, height: size)
         .animation(.spring(response: 0.3, dampingFraction: 0.55), value: popScale)
+        .onAppear {
+            if isAlreadyPopped {
+                isPopped = true
+                popScale = 0
+            }
+        }
     }
 
     private var bubbleShape: some View {
@@ -333,29 +339,37 @@ struct SilhouetteIconView: View {
     }
 }
 
-// MARK: - Shape Indicator Dots
+// MARK: - Text Shape Picker
 
-struct PopShapeIndicator: View {
+struct PopShapePicker: View {
     let current: BubbleSilhouette
     let onSelect: (BubbleSilhouette) -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            ForEach(BubbleSilhouette.allCases, id: \.rawValue) { shape in
+        HStack(spacing: 0) {
+            ForEach(Array(BubbleSilhouette.allCases.enumerated()), id: \.element.rawValue) { index, shape in
                 let isActive = shape == current
-                Circle()
-                    .fill(isActive ? shape.accentColor : Color.white.opacity(0.15))
-                    .frame(width: isActive ? 10 : 6, height: isActive ? 10 : 6)
-                    .frame(width: 20, height: 20)
-                    .contentShape(Circle())
-                    .onTapGesture {
-                        if shape != current {
-                            onSelect(shape)
-                        }
+
+                Button {
+                    if shape != current {
+                        onSelect(shape)
                     }
+                } label: {
+                    Text(shape.displayName)
+                        .font(.system(size: 15, weight: isActive ? .semibold : .regular, design: .rounded))
+                        .foregroundStyle(isActive ? shape.accentColor : .white.opacity(0.3))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                }
+                .animation(.easeInOut(duration: 0.25), value: isActive)
+
+                if index < BubbleSilhouette.allCases.count - 1 {
+                    Text("·")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.15))
+                }
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: current)
     }
 }
 
@@ -375,17 +389,33 @@ struct PopView: View {
     @Binding var soundEnabled: Bool
     @Binding var hapticsEnabled: Bool
 
-    @State private var bubbles: [PopBubble] = []
-    @State private var poppedCount = 0
-    @State private var totalBubbles = 0
-    @State private var isTransitioning = false
+    // Per-silhouette bubble state
+    @State private var bubbleStates: [BubbleSilhouette: [PopBubble]] = [:]
+    @State private var poppedCounts: [BubbleSilhouette: Int] = [:]
+    @State private var totalCounts: [BubbleSilhouette: Int] = [:]
 
+    @State private var isTransitioning = false
     @State private var gridOffset: CGFloat = 0
     @State private var gridOpacity: Double = 1.0
     @State private var dragOffset: CGFloat = 0
 
+    // Reset button
+    @State private var showResetConfirmation = false
+
     private let cols = 11
     private let rows = 13
+
+    private var bubbles: [PopBubble] {
+        bubbleStates[currentSilhouette] ?? []
+    }
+
+    private var poppedCount: Int {
+        poppedCounts[currentSilhouette] ?? 0
+    }
+
+    private var totalBubbles: Int {
+        totalCounts[currentSilhouette] ?? 0
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -405,7 +435,14 @@ struct PopView: View {
 
                     Spacer()
 
-                    PopShapeIndicator(current: currentSilhouette) { target in
+                    // Reset button (only when some bubbles are popped)
+                    if poppedCount > 0 {
+                        resetButton
+                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                    }
+
+                    // Text picker
+                    PopShapePicker(current: currentSilhouette) { target in
                         let dir: SlideDirection = target.rawValue > currentSilhouette.rawValue ? .left : .right
                         transitionTo(target, direction: dir, screenWidth: screenWidth)
                     }
@@ -415,7 +452,46 @@ struct PopView: View {
             }
             .gesture(swipeGesture(screenWidth: screenWidth))
         }
-        .onAppear { regenerateGrid() }
+        .onAppear { ensureGrid(for: currentSilhouette) }
+        .animation(.easeInOut(duration: 0.3), value: poppedCount)
+    }
+
+    // MARK: - Reset Button
+
+    private var resetButton: some View {
+        Button {
+            resetCurrentGrid()
+            if hapticsEnabled {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: showResetConfirmation ? "checkmark" : "arrow.counterclockwise")
+                    .font(.system(size: 12, weight: .medium))
+                Text(showResetConfirmation ? "Done" : "Reset")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+            }
+            .foregroundStyle(.white.opacity(showResetConfirmation ? 0.6 : 0.3))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(.white.opacity(0.06))
+            )
+        }
+        .animation(.easeInOut(duration: 0.2), value: showResetConfirmation)
+    }
+
+    private func resetCurrentGrid() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            showResetConfirmation = true
+        }
+
+        regenerateGrid(for: currentSilhouette)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation { showResetConfirmation = false }
+        }
     }
 
     // MARK: - Background
@@ -457,7 +533,8 @@ struct PopView: View {
                     silhouette: currentSilhouette,
                     size: cellSize,
                     colorCode: bubble.colorCode,
-                    onPop: { handlePop() },
+                    isAlreadyPopped: bubble.isPopped,
+                    onPop: { handlePop(bubbleId: bubble.id) },
                     hapticsEnabled: hapticsEnabled,
                     soundEnabled: soundEnabled
                 )
@@ -465,7 +542,7 @@ struct PopView: View {
                     x: CGFloat(bubble.col) * cellSize + cellSize * 0.5,
                     y: CGFloat(bubble.row) * cellSize + cellSize * 0.5
                 )
-                .id(currentSilhouette.rawValue * 1000 + bubble.id)
+                .id("\(currentSilhouette.rawValue)-\(bubble.id)-\(bubble.isPopped)")
             }
         }
     }
@@ -504,9 +581,15 @@ struct PopView: View {
             }
     }
 
-    // MARK: - Logic
+    // MARK: - Grid Logic
 
-    private func regenerateGrid() {
+    private func ensureGrid(for shape: BubbleSilhouette) {
+        if bubbleStates[shape] == nil {
+            regenerateGrid(for: shape)
+        }
+    }
+
+    private func regenerateGrid(for shape: BubbleSilhouette) {
         var result: [PopBubble] = []
         var idx = 0
 
@@ -515,7 +598,7 @@ struct PopView: View {
                 let nx = (Double(col) + 0.5) / Double(cols) * 2.0 - 1.0
                 let ny = (Double(row) + 0.5) / Double(rows) * 2.0 - 1.0
 
-                let code = shapeColorCode(currentSilhouette, nx: nx, ny: ny)
+                let code = shapeColorCode(shape, nx: nx, ny: ny)
                 if code != 0 {
                     result.append(PopBubble(id: idx, col: col, row: row, colorCode: code))
                     idx += 1
@@ -523,13 +606,26 @@ struct PopView: View {
             }
         }
 
-        bubbles = result
-        totalBubbles = result.count
-        poppedCount = 0
+        bubbleStates[shape] = result
+        totalCounts[shape] = result.count
+        poppedCounts[shape] = 0
     }
 
-    private func handlePop() {
-        poppedCount += 1
+    private func handlePop(bubbleId: Int) {
+        // Mark bubble as popped in state
+        if var stateBubbles = bubbleStates[currentSilhouette],
+           let index = stateBubbles.firstIndex(where: { $0.id == bubbleId }) {
+            stateBubbles[index] = PopBubble(
+                id: stateBubbles[index].id,
+                col: stateBubbles[index].col,
+                row: stateBubbles[index].row,
+                colorCode: stateBubbles[index].colorCode,
+                isPopped: true
+            )
+            bubbleStates[currentSilhouette] = stateBubbles
+        }
+
+        poppedCounts[currentSilhouette] = (poppedCounts[currentSilhouette] ?? 0) + 1
 
         if poppedCount >= totalBubbles {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
@@ -554,27 +650,29 @@ struct PopView: View {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
 
-        let slideOut = screenWidth * 0.6 * direction.outOffset
+        // Ensure target grid exists
+        ensureGrid(for: target)
 
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+        let slideOut = screenWidth * 0.5 * direction.outOffset
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
             gridOffset = slideOut
             gridOpacity = 0
             dragOffset = 0
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             currentSilhouette = target
-            regenerateGrid()
 
-            gridOffset = screenWidth * 0.5 * direction.inOffset
+            gridOffset = screenWidth * 0.4 * direction.inOffset
             gridOpacity = 0
 
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.82)) {
                 gridOffset = 0
                 gridOpacity = 1.0
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isTransitioning = false
             }
         }

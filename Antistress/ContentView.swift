@@ -240,21 +240,6 @@ struct ContentView: View {
 
                 Spacer()
 
-                // Pop silhouette title
-                if selectedTab == 0 {
-                    HStack(spacing: 6) {
-                        SilhouetteIconView(silhouette: popSilhouette, size: 15)
-
-                        Text(popSilhouette.displayName)
-                            .font(.system(size: 17, weight: .semibold, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.8))
-                            .id(popSilhouette.rawValue)
-                    }
-                    .animation(.easeInOut(duration: 0.35), value: popSilhouette)
-                }
-
-                Spacer()
-
                 // Ellipsis — global settings
                 Button {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
