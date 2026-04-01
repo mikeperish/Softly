@@ -16,6 +16,7 @@ struct AccountView: View {
     @State private var showNameEditor = false
     @State private var userName: String = UserDefaults.standard.string(forKey: "userName") ?? "User"
     @State private var nameInput: String = ""
+    @Environment(SubscriptionManager.self) private var subscriptionManager
     
     var body: some View {
         NavigationStack {
@@ -23,7 +24,9 @@ struct AccountView: View {
                 VStack(spacing: 20) {
                     feedbackBanner
                     profileSection
-                    premiumBanner
+                    if !subscriptionManager.isPremium {
+                        premiumBanner
+                    }
                     settingsSection
                     coffeeBanner
                     aboutSection
@@ -269,7 +272,7 @@ struct AccountView: View {
             
             Divider().background(.white.opacity(0.06)).padding(.leading, 46)
             
-            AccountRow(icon: "crown.fill", iconColor: Color(hex: "#FFD700"), title: "Plan", trailingText: "Free", showDivider: false)
+            AccountRow(icon: "crown.fill", iconColor: Color(hex: "#FFD700"), title: "Plan", trailingText: subscriptionManager.isPremium ? "Premium" : "Free", showDivider: false)
         }
         .background(
             RoundedRectangle(cornerRadius: 14)
@@ -569,5 +572,6 @@ struct AccountRow: View {
                 soundEnabled: .constant(true),
                 hapticsEnabled: .constant(true)
             )
+            .environment(SubscriptionManager.shared)
         }
 }

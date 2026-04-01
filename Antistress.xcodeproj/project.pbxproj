@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D44FEB632F7DADEE00A74429 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB622F7DADEE00A74429 /* RevenueCat */; };
+		D44FEB652F7DADF300A74429 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB642F7DADF300A74429 /* RevenueCatUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		D44FEAAB2F7A6DCC00A74429 /* Antistress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Antistress.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +41,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D44FEB652F7DADF300A74429 /* RevenueCatUI in Frameworks */,
+				D44FEB632F7DADEE00A74429 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,6 +53,7 @@
 			isa = PBXGroup;
 			children = (
 				D44FEAAD2F7A6DCC00A74429 /* Antistress */,
+				D44FEB612F7DADEE00A74429 /* Frameworks */,
 				D44FEAAC2F7A6DCC00A74429 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +64,13 @@
 				D44FEAAB2F7A6DCC00A74429 /* Antistress.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D44FEB612F7DADEE00A74429 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -78,6 +93,8 @@
 			);
 			name = Antistress;
 			packageProductDependencies = (
+				D44FEB622F7DADEE00A74429 /* RevenueCat */,
+				D44FEB642F7DADF300A74429 /* RevenueCatUI */,
 			);
 			productName = Antistress;
 			productReference = D44FEAAB2F7A6DCC00A74429 /* Antistress.app */;
@@ -107,6 +124,9 @@
 			);
 			mainGroup = D44FEAA22F7A6DCB00A74429;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D44FEAAC2F7A6DCC00A74429 /* Products */;
 			projectDirPath = "";
@@ -370,6 +390,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.67.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D44FEB622F7DADEE00A74429 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		D44FEB642F7DADF300A74429 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D44FEAA32F7A6DCB00A74429 /* Project object */;
 }
