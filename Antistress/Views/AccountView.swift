@@ -12,7 +12,7 @@ struct AccountView: View {
     @State private var showFeedbackForm = false
     @State private var feedbackText = ""
     @State private var feedbackSent = false
-    @State private var showPremiumAlert = false
+    @State private var showPremium = false
     @State private var showNameEditor = false
     @State private var userName: String = UserDefaults.standard.string(forKey: "userName") ?? "User"
     @State private var nameInput: String = ""
@@ -280,57 +280,36 @@ struct AccountView: View {
     // MARK: - Premium Banner
     private var premiumBanner: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                showPremiumAlert = true
-            }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation { showPremiumAlert = false }
-            }
+            showPremium = true
         } label: {
-            VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color(hex: "#FFD700").opacity(0.15))
-                            .frame(width: 36, height: 36)
-                        
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(Color(hex: "#FFD700"))
-                    }
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color(hex: "#FFD700").opacity(0.15))
+                        .frame(width: 36, height: 36)
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Unlock Premium")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
-                        Text("All patterns, themes & sounds")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.white.opacity(0.4))
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.2))
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color(hex: "#FFD700"))
                 }
-                .padding(16)
                 
-                if showPremiumAlert {
-                    HStack(spacing: 6) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 12))
-                        Text("More features coming soon!")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(Color(hex: "#FFD700").opacity(0.8))
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 14)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Unlock Premium")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Text("All patterns, themes & sounds")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.4))
                 }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.2))
             }
+            .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(
@@ -350,6 +329,9 @@ struct AccountView: View {
             )
         }
         .buttonStyle(.plain)
+        .sheet(isPresented: $showPremium) {
+            PremiumView()
+        }
     }
     
     // MARK: - Settings Section
