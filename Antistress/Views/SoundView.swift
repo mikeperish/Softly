@@ -5,7 +5,6 @@ struct SoundView: View {
     @StateObject private var engine = SoundEngine()
     @State private var soundEnabled = true
     @State private var hapticsEnabled = true
-    @State private var showSettings = false
     @State private var touchRipples: [Ripple] = []
     @State private var isTouching = false
     
@@ -46,8 +45,6 @@ struct SoundView: View {
                     .padding(.bottom, 20)
             }
             
-            // MARK: - Settings Overlay
-            settingsOverlay
         }
         .animation(.easeInOut(duration: 0.5), value: engine.isPlaying)
     }
@@ -178,93 +175,6 @@ private extension SoundView {
         Text("·")
             .font(.system(size: 15, weight: .bold))
             .foregroundStyle(.white.opacity(0.15))
-    }
-}
-
-// MARK: - Settings Overlay
-private extension SoundView {
-    var settingsOverlay: some View {
-        VStack {
-            HStack {
-                Spacer()
-                VStack(alignment: .trailing, spacing: 8) {
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            showSettings.toggle()
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.5))
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(.white.opacity(0.07)))
-                    }
-                    
-                    if showSettings {
-                        SoundSettingsPanel(
-                            soundEnabled: $soundEnabled,
-                            hapticsEnabled: $hapticsEnabled
-                        )
-                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .topTrailing)))
-                    }
-                }
-                .padding(.trailing, 64)
-                .padding(.top, 16)
-            }
-            Spacer()
-        }
-    }
-}
-
-// MARK: - Settings Panel
-struct SoundSettingsPanel: View {
-    @Binding var soundEnabled: Bool
-    @Binding var hapticsEnabled: Bool
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            settingRow(
-                icon: soundEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                title: "Sound",
-                isOn: $soundEnabled
-            )
-            
-            Divider().background(.white.opacity(0.1))
-            
-            settingRow(
-                icon: hapticsEnabled ? "iphone.radiowaves.left.and.right" : "iphone.slash",
-                title: "Haptics",
-                isOn: $hapticsEnabled
-            )
-        }
-        .frame(width: 190)
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(.white.opacity(0.15), lineWidth: 1)
-                }
-        }
-        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 8)
-    }
-    
-    private func settingRow(icon: String, title: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.system(size: 13))
-                .foregroundStyle(isOn.wrappedValue ? AppColors.sound : .white.opacity(0.3))
-                .frame(width: 22)
-            Text(title)
-                .font(.system(size: 14))
-                .foregroundStyle(.white.opacity(0.8))
-            Spacer()
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(AppColors.sound)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 11)
     }
 }
 

@@ -132,6 +132,7 @@ struct FocusView: View {
     @ObservedObject var timer: FocusTimer
 
     @StateObject private var store = FocusStore()
+    @State private var showSettings = false
 
     private var activeAccent: Color {
         return timer.phase.isFocus ? focusRed : breakGreen
@@ -187,6 +188,21 @@ struct FocusView: View {
                     timer.applyPreset(newPreset)
                 }
                 .padding(.bottom, 28)
+            }
+
+            // MARK: - Settings Overlay
+            focusSettingsOverlay
+
+            // Tap to dismiss
+            if showSettings {
+                Color.black.opacity(0.01)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+                            showSettings = false
+                        }
+                    }
+                    .zIndex(98)
             }
         }
         .animation(.easeInOut(duration: 0.6), value: timer.phase.isFocus)
@@ -290,6 +306,188 @@ struct FocusView: View {
                         )
                 )
         }
+    }
+
+    // MARK: - Focus Settings Overlay
+
+    private var focusSettingsOverlay: some View {
+        VStack {
+            HStack {
+                Spacer()
+                VStack(alignment: .trailing, spacing: 8) {
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            showSettings.toggle()
+                        }
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.5))
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(.white.opacity(0.07)))
+                    }
+
+                    if showSettings {
+                        focusSettingsPanel
+                            .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .topTrailing)))
+                    }
+                }
+                .padding(.trailing, 64)
+                .padding(.top, 16)
+            }
+            Spacer()
+        }
+        .zIndex(99)
+    }
+
+    // MARK: - Focus Settings Panel
+
+    private var focusSettingsPanel: some View {
+        VStack(spacing: 0) {
+            // Auto-start toggle
+            focusToggleRow(
+                icon: "play.circle.fill",
+                title: "Auto-start",
+                isOn: Binding(
+                    get: { timer.autoStartNext },
+                    set: { timer.autoStartNext = $0 }
+                )
+            )
+
+            focusDivider
+
+            // Work stepper
+            focusStepperRow(
+                icon: "brain.head.profile.fill",
+                title: "Work",
+                value: timer.workMinutes,
+                range: 1...60
+            ) { v in
+                timer.updateWorkMinutes(v)
+            }
+
+            focusDivider
+
+            // Break stepper
+            focusStepperRow(
+                icon: "cup.and.saucer.fill",
+                title: "Break",
+                value: timer.breakMinutes,
+                range: 1...30
+            ) { v in
+                timer.updateBreakMinutes(v)
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+                )
+        )
+        .frame(width: 210)
+        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 8)
+    }
+
+    private var focusDivider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.06))
+            .frame(height: 0.5)
+            .padding(.horizontal, 12)
+    }
+
+    private func focusToggleRow(icon: String, title: String, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.5))
+                .frame(width: 22)
+
+            Text(title)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.75))
+
+            Spacer()
+
+            FocusToggle(isOn: isOn, accent: activeAccent)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+
+    private func focusStepperRow(icon: String, title: String, value: Int, range: ClosedRange<Int>, onChange: @escaping (Int) -> Void) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.white.opacity(0.5))
+                .frame(width: 22)
+
+            Text(title)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(Color.white.opacity(0.75))
+
+            Spacer()
+
+            HStack(spacing: 6) {
+                Button {
+                    if value > range.lowerBound {
+                        onChange(value - 1)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    }
+                } label: {
+                    Image(systemName: "minus")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(.white.opacity(0.08)))
+                }
+
+                Text("\(value)")
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 24, alignment: .center)
+
+                Button {
+                    if value < range.upperBound {
+                        onChange(value + 1)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.4))
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(.white.opacity(0.08)))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+    }
+}
+
+// MARK: - Focus Toggle
+
+struct FocusToggle: View {
+    @Binding var isOn: Bool
+    var accent: Color
+
+    var body: some View {
+        ZStack {
+            Capsule()
+                .fill(isOn ? accent.opacity(0.5) : Color.white.opacity(0.12))
+                .frame(width: 40, height: 24)
+
+            Circle()
+                .fill(Color.white)
+                .frame(width: 18, height: 18)
+                .shadow(color: Color.black.opacity(0.2), radius: 1.5, y: 1)
+                .offset(x: isOn ? 8 : -8)
+        }
+        .animation(.spring(response: 0.22, dampingFraction: 0.7), value: isOn)
+        .onTapGesture { isOn.toggle() }
     }
 }
 

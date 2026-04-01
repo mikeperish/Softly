@@ -22,7 +22,6 @@ enum SpinnerPattern: Int, CaseIterable {
 
 // MARK: - PhysicsView (SwiftUI wrapper)
 struct PhysicsView: View {
-    @State private var showSettings = false
     @State private var soundEnabled = true
     @State private var hapticsEnabled = true
     @State private var currentPattern: SpinnerPattern = .pulse
@@ -72,80 +71,7 @@ struct PhysicsView: View {
                 )
                 .padding(.bottom, 24)
             }
-            
-            // Ellipsis
-            ellipsisOverlay
-            
-            // Settings panel
-            if showSettings {
-                settingsPanel
-            }
         }
-    }
-    
-    // MARK: - Ellipsis
-    private var ellipsisOverlay: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        showSettings.toggle()
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.5))
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(Color.white.opacity(0.07)))
-                }
-                .padding(.trailing, 64)
-                .padding(.top, 16)
-            }
-            Spacer()
-        }
-    }
-    
-    // MARK: - Settings Panel
-    private var settingsPanel: some View {
-        VStack {
-            HStack {
-                Spacer()
-                VStack(alignment: .leading, spacing: 16) {
-                    Toggle(isOn: $soundEnabled) {
-                        Label("Sound", systemImage: "speaker.wave.2.fill")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                    .onChange(of: soundEnabled) { _, val in
-                        SpinnerScene.shared.soundEnabled = val
-                    }
-                    
-                    Toggle(isOn: $hapticsEnabled) {
-                        Label("Haptics", systemImage: "iphone.radiowaves.left.and.right")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.8))
-                    }
-                    .onChange(of: hapticsEnabled) { _, val in
-                        SpinnerScene.shared.hapticsEnabled = val
-                    }
-                }
-                .padding(20)
-                .frame(width: 220)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
-                        )
-                )
-                .padding(.trailing, 20)
-                .padding(.top, 60)
-            }
-            Spacer()
-        }
-        .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .topTrailing)))
     }
 }
 
@@ -409,20 +335,20 @@ class SpinnerScene: SKScene {
         if abs(angularVelocity) < 0.01 { angularVelocity = 0 }
         
         // 4. Gyroscope gravity — only when spinning
-                if abs(angularVelocity) > 0.1, let motion = motionManager.deviceMotion {
-                    let gx = CGFloat(motion.gravity.x) * gravityScale
-                    let gy = CGFloat(motion.gravity.y) * gravityScale
-                    spinnerVelocity.dx += gx * (1.0 / 60.0)
-                    spinnerVelocity.dy += gy * (1.0 / 60.0)
-                }
-                
-                // Stop movement when not spinning
-                if abs(angularVelocity) < 0.1 {
-                    spinnerVelocity.dx *= 0.9
-                    spinnerVelocity.dy *= 0.9
-                    if abs(spinnerVelocity.dx) < 0.5 { spinnerVelocity.dx = 0 }
-                    if abs(spinnerVelocity.dy) < 0.5 { spinnerVelocity.dy = 0 }
-                }
+        if abs(angularVelocity) > 0.1, let motion = motionManager.deviceMotion {
+            let gx = CGFloat(motion.gravity.x) * gravityScale
+            let gy = CGFloat(motion.gravity.y) * gravityScale
+            spinnerVelocity.dx += gx * (1.0 / 60.0)
+            spinnerVelocity.dy += gy * (1.0 / 60.0)
+        }
+        
+        // Stop movement when not spinning
+        if abs(angularVelocity) < 0.1 {
+            spinnerVelocity.dx *= 0.9
+            spinnerVelocity.dy *= 0.9
+            if abs(spinnerVelocity.dx) < 0.5 { spinnerVelocity.dx = 0 }
+            if abs(spinnerVelocity.dy) < 0.5 { spinnerVelocity.dy = 0 }
+        }
         
         spinnerVelocity.dx *= moveFriction
         spinnerVelocity.dy *= moveFriction
@@ -435,16 +361,16 @@ class SpinnerScene: SKScene {
         handleWallCollisions()
         
         // Continuous spin haptic
-                if hapticsEnabled && abs(angularVelocity) > 2 {
-                    let spinSpeed = abs(angularVelocity)
-                    // Tick every N frames based on speed
-                    let tickInterval = max(2, Int(30.0 / spinSpeed))
-                    let frameCount = Int(currentRotation * 10)
-                    if frameCount % tickInterval == 0 {
-                        let intensity = min(spinSpeed / 25.0, 0.4)
-                        impactLight.impactOccurred(intensity: intensity)
-                    }
-                }
+        if hapticsEnabled && abs(angularVelocity) > 2 {
+            let spinSpeed = abs(angularVelocity)
+            // Tick every N frames based on speed
+            let tickInterval = max(2, Int(30.0 / spinSpeed))
+            let frameCount = Int(currentRotation * 10)
+            if frameCount % tickInterval == 0 {
+                let intensity = min(spinSpeed / 25.0, 0.4)
+                impactLight.impactOccurred(intensity: intensity)
+            }
+        }
         
         // 7. Apply position
         spinnerNode.position = spinnerPosition
