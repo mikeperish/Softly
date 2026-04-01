@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var soundEnabled = true
     @State private var hapticsEnabled = true
     @State private var showAccount = false
+    @State private var showPremium = false
 
     @StateObject private var focusTimer = FocusTimer()
 
@@ -54,18 +55,15 @@ struct ContentView: View {
                 // Premium
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showPremium = true
                 } label: {
-                    Image(systemName: "diamond.fill")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(hex: "#FFD700"), Color(hex: "#FFA500")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                    Text("💎")
+                        .font(.system(size: 18))
                         .frame(width: 36, height: 36)
                         .background(Circle().fill(.white.opacity(0.07)))
+                }
+                .sheet(isPresented: $showPremium) {
+                    PremiumView()
                 }
 
                 Spacer()
