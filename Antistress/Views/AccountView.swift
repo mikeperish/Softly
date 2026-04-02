@@ -2,13 +2,14 @@
 // Fidget App — Account Sheet
 
 import SwiftUI
+import StoreKit
 
 // MARK: - AccountView
 struct AccountView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var soundEnabled: Bool
     @Binding var hapticsEnabled: Bool
-    
+
     @State private var showFeedbackForm = false
     @State private var feedbackText = ""
     @State private var feedbackSent = false
@@ -17,7 +18,7 @@ struct AccountView: View {
     @State private var userName: String = UserDefaults.standard.string(forKey: "userName") ?? "User"
     @State private var nameInput: String = ""
     @Environment(SubscriptionManager.self) private var subscriptionManager
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -28,9 +29,8 @@ struct AccountView: View {
                         premiumBanner
                     }
                     settingsSection
-                    coffeeBanner
                     aboutSection
-                    
+
                     Text("Made with love for ADHD minds")
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.15))
@@ -53,7 +53,6 @@ struct AccountView: View {
         }
         .toolbarBackground(Color(hex: "#0A0A0F"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationBackground(Color(hex: "#0A0A0F"))
@@ -70,8 +69,11 @@ struct AccountView: View {
             .padding(.trailing, 20)
             .padding(.top, 16)
         }
+        .sheet(isPresented: $showPremium) {
+            PremiumView()
+        }
     }
-    
+
     // MARK: - Feedback Banner
     @ViewBuilder
     private var feedbackBanner: some View {
@@ -95,7 +97,7 @@ struct AccountView: View {
                             )
                         )
                         .frame(width: 36, height: 36)
-                    
+
                     Image(systemName: "bubble.left.and.bubble.right.fill")
                         .font(.system(size: 15))
                         .foregroundStyle(
@@ -109,7 +111,7 @@ struct AccountView: View {
                             )
                         )
                 }
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Share feedback")
                         .font(.system(size: 15, weight: .semibold))
@@ -118,9 +120,9 @@ struct AccountView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.white.opacity(0.4))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: showFeedbackForm ? "chevron.up" : "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.2))
@@ -155,12 +157,12 @@ struct AccountView: View {
             )
         }
         .buttonStyle(.plain)
-        
+
         if showFeedbackForm {
             feedbackFormView
         }
     }
-    
+
     // MARK: - Feedback Form
     private var feedbackFormView: some View {
         VStack(spacing: 12) {
@@ -194,7 +196,7 @@ struct AccountView: View {
                                 .allowsHitTesting(false)
                         }
                     }
-                
+
                 Button {
                     sendFeedback()
                 } label: {
@@ -223,14 +225,13 @@ struct AccountView: View {
         )
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
-    
+
     // MARK: - Profile Section
     @ViewBuilder
     private var profileSection: some View {
         AccountSectionHeader(title: "PROFILE")
-        
+
         VStack(spacing: 0) {
-            // Name row — tappable to edit
             Button {
                 nameInput = userName
                 showNameEditor = true
@@ -269,17 +270,47 @@ struct AccountView: View {
             } message: {
                 Text("This name is shown only to you")
             }
-            
+
             Divider().background(.white.opacity(0.06)).padding(.leading, 46)
-            
-            AccountRow(icon: "crown.fill", iconColor: Color(hex: "#FFD700"), title: "Plan", trailingText: subscriptionManager.isPremium ? "Premium" : "Free", showDivider: false)
+
+            // Plan — opens paywall if Free
+            Button {
+                if !subscriptionManager.isPremium {
+                    showPremium = true
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                }
+            } label: {
+                HStack {
+                    HStack(spacing: 10) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color(hex: "#FFD700"))
+                            .frame(width: 20)
+                        Text("Plan")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.white.opacity(0.8))
+                    }
+                    Spacer()
+                    Text(subscriptionManager.isPremium ? "Premium" : "Free")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white.opacity(0.25))
+                    if !subscriptionManager.isPremium {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.15))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 13)
+            }
+            .buttonStyle(.plain)
         }
         .background(
             RoundedRectangle(cornerRadius: 14)
                 .fill(.white.opacity(0.03))
         )
     }
-    
+
     // MARK: - Premium Banner
     private var premiumBanner: some View {
         Button {
@@ -291,12 +322,12 @@ struct AccountView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color(hex: "#FFD700").opacity(0.15))
                         .frame(width: 36, height: 36)
-                    
+
                     Image(systemName: "star.fill")
                         .font(.system(size: 16))
                         .foregroundStyle(Color(hex: "#FFD700"))
                 }
-                
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Unlock Premium")
                         .font(.system(size: 15, weight: .semibold))
@@ -305,9 +336,9 @@ struct AccountView: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.white.opacity(0.4))
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.2))
@@ -332,16 +363,13 @@ struct AccountView: View {
             )
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $showPremium) {
-            PremiumView()
-        }
     }
-    
+
     // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(spacing: 8) {
             AccountSectionHeader(title: "SETTINGS")
-            
+
             VStack(spacing: 0) {
                 HStack {
                     HStack(spacing: 10) {
@@ -361,9 +389,9 @@ struct AccountView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 13)
-                
+
                 Divider().background(.white.opacity(0.06)).padding(.leading, 46)
-                
+
                 HStack {
                     HStack(spacing: 10) {
                         Image(systemName: "iphone.radiowaves.left.and.right")
@@ -389,90 +417,39 @@ struct AccountView: View {
             )
         }
     }
-    
-    // MARK: - Coffee Banner
-    private var coffeeBanner: some View {
-        Button {
-            if let url = URL(string: "https://buymeacoffee.com") {
-                UIApplication.shared.open(url)
-            }
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.06, green: 0.55, blue: 0.50).opacity(0.25),
-                                    Color(red: 0.20, green: 0.70, blue: 0.65).opacity(0.25)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 36, height: 36)
-                    
-                    Text("☕")
-                        .font(.system(size: 16))
-                        .frame(width: 20, height: 20)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Buy me a coffee")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white)
-                    Text("Support indie development")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.white.opacity(0.4))
-                }
-                
-                Spacer()
-                
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.2))
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.06, green: 0.55, blue: 0.50).opacity(0.08),
-                                Color(red: 0.20, green: 0.70, blue: 0.65).opacity(0.06)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.06, green: 0.55, blue: 0.50).opacity(0.2),
-                                        Color(red: 0.20, green: 0.70, blue: 0.65).opacity(0.15)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.5
-                            )
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-    }
-    
+
     // MARK: - About Section
     private var aboutSection: some View {
         VStack(spacing: 8) {
             AccountSectionHeader(title: "ABOUT")
-            
+
             VStack(spacing: 0) {
                 AccountRow(icon: "info.circle.fill", iconColor: .white.opacity(0.4), title: "Version", trailingText: "1.0.0", showDivider: true)
-                AccountRow(icon: "heart.fill", iconColor: Color(red: 0.83, green: 0.33, blue: 0.49), title: "Rate the app", showChevron: true, showDivider: true)
-                AccountRow(icon: "doc.text.fill", iconColor: .white.opacity(0.4), title: "Privacy Policy", showChevron: true, showDivider: false)
+
+                Button {
+                    requestAppReview()
+                } label: {
+                    AccountRow(icon: "heart.fill", iconColor: Color(red: 0.83, green: 0.33, blue: 0.49), title: "Rate the app", showChevron: true, showDivider: true)
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    if let url = URL(string: "https://mikeperish.github.io/Softly/privacy.html") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    AccountRow(icon: "lock.shield.fill", iconColor: .white.opacity(0.4), title: "Privacy Policy", showChevron: true, showDivider: true)
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    if let url = URL(string: "https://mikeperish.github.io/Softly/terms.html") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    AccountRow(icon: "doc.text.fill", iconColor: .white.opacity(0.4), title: "Terms of Use", showChevron: true, showDivider: false)
+                }
+                .buttonStyle(.plain)
             }
             .background(
                 RoundedRectangle(cornerRadius: 14)
@@ -480,25 +457,34 @@ struct AccountView: View {
             )
         }
     }
-    
+
+    // MARK: - Rate App
+    private func requestAppReview() {
+        if let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first {
+            SKStoreReviewController.requestReview(in: scene)
+        }
+    }
+
     // MARK: - Send Feedback
     private func sendFeedback() {
-        let subject = "Fidget App Feedback"
+        let subject = "Softly Feedback"
         let body = feedbackText
         let email = "mykhailo.mirzaiev@icloud.com"
-        
+
         let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        
+
         if let url = URL(string: "mailto:\(email)?subject=\(encodedSubject)&body=\(encodedBody)") {
             UIApplication.shared.open(url)
         }
-        
+
         withAnimation {
             feedbackSent = true
             feedbackText = ""
         }
-        
+
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }
@@ -507,7 +493,7 @@ struct AccountView: View {
 
 struct AccountSectionHeader: View {
     let title: String
-    
+
     var body: some View {
         HStack {
             Text(title)
@@ -527,7 +513,7 @@ struct AccountRow: View {
     var trailingText: String? = nil
     var showChevron: Bool = false
     var showDivider: Bool = true
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -554,7 +540,7 @@ struct AccountRow: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 13)
-            
+
             if showDivider {
                 Divider()
                     .background(.white.opacity(0.06))
