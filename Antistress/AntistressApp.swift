@@ -21,19 +21,29 @@ struct AntistressApp: App {
     }
 }
 
-// MARK: - Root View (Splash → Content)
+// MARK: - Root View (Splash → Onboarding → Content)
 
 struct RootView: View {
     @State private var showSplash = true
+    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "onboardingComplete")
 
     var body: some View {
         ZStack {
-            ContentView()
+            if showOnboarding {
+                OnboardingView {
+                    UserDefaults.standard.set(true, forKey: "onboardingComplete")
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showOnboarding = false
+                    }
+                }
+            } else {
+                ContentView()
+            }
 
             if showSplash {
                 SplashView()
                     .transition(.opacity)
-                    .zIndex(1)
+                    .zIndex(2)
             }
         }
         .onAppear {
@@ -62,10 +72,7 @@ struct SLine: Shape {
         let s = (140 - inset) * scale
 
         var path = Path()
-        path.move(to: CGPoint(
-            x: cx,
-            y: cy - s
-        ))
+        path.move(to: CGPoint(x: cx, y: cy - s))
         path.addCurve(
             to: CGPoint(x: cx + s * 0.7, y: cy - s * 0.35),
             control1: CGPoint(x: cx + s * 0.35, y: cy - s),
