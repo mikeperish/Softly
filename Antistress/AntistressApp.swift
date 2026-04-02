@@ -37,7 +37,7 @@ struct RootView: View {
             }
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
                 withAnimation(.easeOut(duration: 0.5)) {
                     showSplash = false
                 }
@@ -46,97 +46,143 @@ struct RootView: View {
     }
 }
 
+// MARK: - S Line Shape
+
+struct SLine: Shape {
+    let inset: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let scale = min(w, h) / 280
+
+        let cx = w / 2
+        let cy = h / 2
+
+        let s = (140 - inset) * scale
+
+        var path = Path()
+        path.move(to: CGPoint(
+            x: cx,
+            y: cy - s
+        ))
+        path.addCurve(
+            to: CGPoint(x: cx + s * 0.7, y: cy - s * 0.35),
+            control1: CGPoint(x: cx + s * 0.35, y: cy - s),
+            control2: CGPoint(x: cx + s * 0.7, y: cy - s * 0.75)
+        )
+        path.addCurve(
+            to: CGPoint(x: cx, y: cy + s * 0.05),
+            control1: CGPoint(x: cx + s * 0.7, y: cy + s * 0.05),
+            control2: CGPoint(x: cx + s * 0.3, y: cy + s * 0.05)
+        )
+        path.addCurve(
+            to: CGPoint(x: cx - s * 0.7, y: cy + s * 0.45),
+            control1: CGPoint(x: cx - s * 0.3, y: cy + s * 0.05),
+            control2: CGPoint(x: cx - s * 0.7, y: cy + s * 0.1)
+        )
+        path.addCurve(
+            to: CGPoint(x: cx, y: cy + s),
+            control1: CGPoint(x: cx - s * 0.7, y: cy + s * 0.8),
+            control2: CGPoint(x: cx - s * 0.35, y: cy + s)
+        )
+        return path
+    }
+}
+
 // MARK: - Splash View
 
 struct SplashView: View {
-    @State private var logoScale: CGFloat = 0.6
-    @State private var logoOpacity: Double = 0
-    @State private var ringScale: CGFloat = 0.8
-    @State private var ringOpacity: Double = 0
-    @State private var textOpacity: Double = 0
-    @State private var glowOpacity: Double = 0
+    @State private var trim1: CGFloat = 0
+    @State private var trim2: CGFloat = 0
+    @State private var trim3: CGFloat = 0
+    @State private var trim4: CGFloat = 0
+    @State private var dotOpacity: Double = 0
+    @State private var fadeOut: Double = 1
+
+    private let purple = Color(red: 0.48, green: 0.41, blue: 0.93)
+    private let teal = Color(red: 0.31, green: 0.80, blue: 0.77)
 
     var body: some View {
         ZStack {
             Color(hex: "#0A0A0F")
                 .ignoresSafeArea()
 
-            RadialGradient(
-                colors: [
-                    Color(red: 0.48, green: 0.41, blue: 0.93).opacity(glowOpacity * 0.12),
-                    Color.clear
-                ],
-                center: .center,
-                startRadius: 0,
-                endRadius: 250
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                ZStack {
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.48, green: 0.41, blue: 0.93).opacity(0.3),
-                                    Color(red: 0.31, green: 0.80, blue: 0.77).opacity(0.15)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
-                        .frame(width: 160, height: 160)
-                        .scaleEffect(ringScale)
-                        .opacity(ringOpacity)
-
-                    Image("LaunchLogo")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 120, height: 120)
-                        .scaleEffect(logoScale)
-                        .opacity(logoOpacity)
-                }
-
-                Text("Softly")
-                    .font(.system(size: 28, weight: .light, design: .rounded))
-                    .foregroundStyle(
+            ZStack {
+                SLine(inset: 0)
+                    .trim(from: 0, to: trim1)
+                    .stroke(
                         LinearGradient(
-                            colors: [
-                                .white.opacity(0.9),
-                                .white.opacity(0.5)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                            colors: [purple, teal],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        ),
+                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
                     )
-                    .opacity(textOpacity)
+                    .opacity(0.75)
+
+                SLine(inset: 25)
+                    .trim(from: 0, to: trim2)
+                    .stroke(
+                        LinearGradient(
+                            colors: [purple, teal],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        ),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+                    .opacity(0.5)
+
+                SLine(inset: 48)
+                    .trim(from: 0, to: trim3)
+                    .stroke(
+                        LinearGradient(
+                            colors: [purple, teal],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        ),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .opacity(0.3)
+
+                SLine(inset: 68)
+                    .trim(from: 0, to: trim4)
+                    .stroke(
+                        LinearGradient(
+                            colors: [purple, teal],
+                            startPoint: .topTrailing,
+                            endPoint: .bottomLeading
+                        ),
+                        style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                    )
+                    .opacity(0.15)
+
+                Circle()
+                    .fill(.white.opacity(0.5))
+                    .frame(width: 8, height: 8)
+                    .opacity(dotOpacity)
             }
+            .frame(width: 200, height: 200)
+            .opacity(fadeOut)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                logoOpacity = 1
-                logoScale = 1.0
-                glowOpacity = 1
+            withAnimation(.easeInOut(duration: 0.8)) {
+                trim1 = 1
             }
-
-            withAnimation(.easeOut(duration: 1.0).delay(0.3)) {
-                ringScale = 1.15
-                ringOpacity = 1
+            withAnimation(.easeInOut(duration: 0.7).delay(0.15)) {
+                trim2 = 1
             }
-
-            withAnimation(.easeInOut(duration: 0.8).delay(1.0)) {
-                ringScale = 1.3
-                ringOpacity = 0
+            withAnimation(.easeInOut(duration: 0.6).delay(0.3)) {
+                trim3 = 1
             }
-
-            withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
-                textOpacity = 1
+            withAnimation(.easeInOut(duration: 0.5).delay(0.45)) {
+                trim4 = 1
             }
-
-            withAnimation(.easeIn(duration: 0.4).delay(1.8)) {
-                textOpacity = 0
-                glowOpacity = 0
+            withAnimation(.easeOut(duration: 0.3).delay(0.7)) {
+                dotOpacity = 1
+            }
+            withAnimation(.easeIn(duration: 0.4).delay(2.3)) {
+                fadeOut = 0
             }
         }
     }
