@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		D44FEB632F7DADEE00A74429 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB622F7DADEE00A74429 /* RevenueCat */; };
 		D44FEB652F7DADF300A74429 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB642F7DADF300A74429 /* RevenueCatUI */; };
+		D44FEB6C2F7F245F00A74429 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB6B2F7F245F00A74429 /* FirebaseAnalytics */; };
+		D44FEB6E2F7F245F00A74429 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = D44FEB6D2F7F245F00A74429 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,7 +44,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D44FEB652F7DADF300A74429 /* RevenueCatUI in Frameworks */,
+				D44FEB6E2F7F245F00A74429 /* FirebaseCrashlytics in Frameworks */,
 				D44FEB632F7DADEE00A74429 /* RevenueCat in Frameworks */,
+				D44FEB6C2F7F245F00A74429 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +87,7 @@
 				D44FEAA72F7A6DCB00A74429 /* Sources */,
 				D44FEAA82F7A6DCB00A74429 /* Frameworks */,
 				D44FEAA92F7A6DCB00A74429 /* Resources */,
+				D44FEB6F2F7F255A00A74429 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -95,6 +100,8 @@
 			packageProductDependencies = (
 				D44FEB622F7DADEE00A74429 /* RevenueCat */,
 				D44FEB642F7DADF300A74429 /* RevenueCatUI */,
+				D44FEB6B2F7F245F00A74429 /* FirebaseAnalytics */,
+				D44FEB6D2F7F245F00A74429 /* FirebaseCrashlytics */,
 			);
 			productName = Antistress;
 			productReference = D44FEAAB2F7A6DCC00A74429 /* Antistress.app */;
@@ -126,6 +133,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+				D44FEB6A2F7F245F00A74429 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D44FEAAC2F7A6DCC00A74429 /* Products */;
@@ -147,6 +155,29 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D44FEB6F2F7F255A00A74429 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}\n${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}\n${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist\n$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/$(TARGET_NAME).dSYM.upload",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		D44FEAA72F7A6DCB00A74429 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -166,10 +197,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = BKG33G84NX;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Antistress/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Softly;
@@ -194,13 +225,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Debug;
@@ -213,10 +245,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = BKG33G84NX;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Antistress/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Softly;
@@ -241,13 +273,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Release;
@@ -400,6 +433,14 @@
 				minimumVersion = 5.67.0;
 			};
 		};
+		D44FEB6A2F7F245F00A74429 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -412,6 +453,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D44FEB5E2F7DACC300A74429 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
+		};
+		D44FEB6B2F7F245F00A74429 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D44FEB6A2F7F245F00A74429 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		D44FEB6D2F7F245F00A74429 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D44FEB6A2F7F245F00A74429 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

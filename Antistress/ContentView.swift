@@ -52,19 +52,21 @@ struct ContentView: View {
 
             // Global header
             HStack {
-                // Premium
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    showPremium = true
-                } label: {
-                    Text("💎")
-                        .font(.system(size: 18))
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(.white.opacity(0.07)))
-                }
-                .sheet(isPresented: $showPremium) {
-                    PremiumView()
-                }
+                // Premium (hidden when already subscribed)
+                                if !SubscriptionManager.shared.isPremium {
+                                    Button {
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        showPremium = true
+                                    } label: {
+                                        Text("💎")
+                                            .font(.system(size: 18))
+                                            .frame(width: 36, height: 36)
+                                            .background(Circle().fill(.white.opacity(0.07)))
+                                    }
+                                    .sheet(isPresented: $showPremium) {
+                                        PremiumView()
+                                    }
+                                }
 
                 Spacer()
 

@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import Firebase
+
 
 @main
 struct AntistressApp: App {
     init() {
+        FirebaseApp.configure()
         SubscriptionManager.shared.configure()
+        // Тестовий креш — ВИДАЛИТИ після перевірки!
+        // fatalError("Test Crashlytics")
     }
 
     var body: some Scene {
