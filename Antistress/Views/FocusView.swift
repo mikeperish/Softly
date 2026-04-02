@@ -217,6 +217,9 @@ struct FocusView: View {
         }
         .onChange(of: soundEnabled) { _, val in timer.soundEnabled = val }
         .onChange(of: hapticsEnabled) { _, val in timer.hapticsEnabled = val }
+        .onDisappear {
+            showSettings = false
+        }
     }
 
     // MARK: - Session Dots
