@@ -187,7 +187,7 @@ struct FocusView: View {
                 ) { newPreset in
                     timer.applyPreset(newPreset)
                 }
-                .padding(.bottom, 28)
+                .padding(.bottom, 20)
             }
 
             // MARK: - Settings Overlay
