@@ -152,15 +152,95 @@ struct PhysicsView: View {
     }
 }
 
-// MARK: - Aurora Color Palette
-struct AuroraColors {
-    static let blue = UIColor(red: 0.04, green: 0.52, blue: 0.89, alpha: 1.0)
-    static let sky = UIColor(red: 0.20, green: 0.65, blue: 0.95, alpha: 1.0)
-    static let ice = UIColor(red: 0.55, green: 0.82, blue: 1.0, alpha: 1.0)
-    static let indigo = UIColor(red: 0.15, green: 0.35, blue: 0.75, alpha: 1.0)
-    static let white = UIColor(red: 0.85, green: 0.92, blue: 1.0, alpha: 1.0)
+// MARK: - Pattern Color Palettes
 
-    static let all: [UIColor] = [blue, sky, ice, indigo, white]
+struct PatternPalette {
+    let primary: UIColor
+    let secondary: UIColor
+    let tertiary: UIColor
+    let accent: UIColor
+    let highlight: UIColor
+
+    var all: [UIColor] { [primary, secondary, tertiary, accent, highlight] }
+}
+
+struct PatternColors {
+    static let palettes: [SpinnerPattern: PatternPalette] = [
+        .pulse: PatternPalette(
+            primary:   UIColor(red: 0.04, green: 0.52, blue: 0.89, alpha: 1.0),
+            secondary: UIColor(red: 0.20, green: 0.65, blue: 0.95, alpha: 1.0),
+            tertiary:  UIColor(red: 0.55, green: 0.82, blue: 1.0, alpha: 1.0),
+            accent:    UIColor(red: 0.15, green: 0.35, blue: 0.75, alpha: 1.0),
+            highlight: UIColor(red: 0.85, green: 0.92, blue: 1.0, alpha: 1.0)
+        ),
+        .fibonacci: PatternPalette(
+            primary:   UIColor(red: 0.85, green: 0.65, blue: 0.20, alpha: 1.0),
+            secondary: UIColor(red: 0.75, green: 0.55, blue: 0.15, alpha: 1.0),
+            tertiary:  UIColor(red: 1.0, green: 0.82, blue: 0.35, alpha: 1.0),
+            accent:    UIColor(red: 0.60, green: 0.42, blue: 0.10, alpha: 1.0),
+            highlight: UIColor(red: 1.0, green: 0.92, blue: 0.75, alpha: 1.0)
+        ),
+        .spiral: PatternPalette(
+            primary:   UIColor(red: 0.55, green: 0.30, blue: 0.85, alpha: 1.0),
+            secondary: UIColor(red: 0.70, green: 0.45, blue: 0.95, alpha: 1.0),
+            tertiary:  UIColor(red: 0.80, green: 0.65, blue: 1.0, alpha: 1.0),
+            accent:    UIColor(red: 0.35, green: 0.15, blue: 0.65, alpha: 1.0),
+            highlight: UIColor(red: 0.90, green: 0.82, blue: 1.0, alpha: 1.0)
+        ),
+        .mandala: PatternPalette(
+            primary:   UIColor(red: 0.90, green: 0.40, blue: 0.50, alpha: 1.0),
+            secondary: UIColor(red: 0.95, green: 0.55, blue: 0.60, alpha: 1.0),
+            tertiary:  UIColor(red: 1.0, green: 0.75, blue: 0.78, alpha: 1.0),
+            accent:    UIColor(red: 0.65, green: 0.25, blue: 0.35, alpha: 1.0),
+            highlight: UIColor(red: 1.0, green: 0.90, blue: 0.90, alpha: 1.0)
+        ),
+        .starburst: PatternPalette(
+            primary:   UIColor(red: 0.15, green: 0.78, blue: 0.72, alpha: 1.0),
+            secondary: UIColor(red: 0.25, green: 0.88, blue: 0.82, alpha: 1.0),
+            tertiary:  UIColor(red: 0.55, green: 0.95, blue: 0.90, alpha: 1.0),
+            accent:    UIColor(red: 0.10, green: 0.55, blue: 0.50, alpha: 1.0),
+            highlight: UIColor(red: 0.82, green: 1.0, blue: 0.97, alpha: 1.0)
+        ),
+        .vortex: PatternPalette(
+            primary:   UIColor(red: 0.15, green: 0.25, blue: 0.70, alpha: 1.0),
+            secondary: UIColor(red: 0.25, green: 0.38, blue: 0.85, alpha: 1.0),
+            tertiary:  UIColor(red: 0.50, green: 0.60, blue: 0.95, alpha: 1.0),
+            accent:    UIColor(red: 0.10, green: 0.15, blue: 0.50, alpha: 1.0),
+            highlight: UIColor(red: 0.75, green: 0.80, blue: 1.0, alpha: 1.0)
+        ),
+        .dots: PatternPalette(
+            primary:   UIColor(red: 0.20, green: 0.82, blue: 0.60, alpha: 1.0),
+            secondary: UIColor(red: 0.30, green: 0.90, blue: 0.70, alpha: 1.0),
+            tertiary:  UIColor(red: 0.60, green: 0.95, blue: 0.80, alpha: 1.0),
+            accent:    UIColor(red: 0.12, green: 0.55, blue: 0.40, alpha: 1.0),
+            highlight: UIColor(red: 0.82, green: 1.0, blue: 0.90, alpha: 1.0)
+        ),
+        .waves: PatternPalette(
+            primary:   UIColor(red: 0.60, green: 0.50, blue: 0.85, alpha: 1.0),
+            secondary: UIColor(red: 0.72, green: 0.62, blue: 0.95, alpha: 1.0),
+            tertiary:  UIColor(red: 0.85, green: 0.78, blue: 1.0, alpha: 1.0),
+            accent:    UIColor(red: 0.40, green: 0.30, blue: 0.65, alpha: 1.0),
+            highlight: UIColor(red: 0.92, green: 0.88, blue: 1.0, alpha: 1.0)
+        ),
+        .galaxy: PatternPalette(
+            primary:   UIColor(red: 0.70, green: 0.25, blue: 0.75, alpha: 1.0),
+            secondary: UIColor(red: 0.82, green: 0.40, blue: 0.85, alpha: 1.0),
+            tertiary:  UIColor(red: 0.90, green: 0.60, blue: 0.95, alpha: 1.0),
+            accent:    UIColor(red: 0.45, green: 0.12, blue: 0.50, alpha: 1.0),
+            highlight: UIColor(red: 0.95, green: 0.82, blue: 1.0, alpha: 1.0)
+        ),
+        .hypno: PatternPalette(
+            primary:   UIColor(red: 0.65, green: 0.68, blue: 0.72, alpha: 1.0),
+            secondary: UIColor(red: 0.78, green: 0.80, blue: 0.84, alpha: 1.0),
+            tertiary:  UIColor(red: 0.88, green: 0.90, blue: 0.92, alpha: 1.0),
+            accent:    UIColor(red: 0.40, green: 0.42, blue: 0.48, alpha: 1.0),
+            highlight: UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+        ),
+    ]
+
+    static func palette(for pattern: SpinnerPattern) -> PatternPalette {
+        palettes[pattern] ?? palettes[.pulse]!
+    }
 }
 
 // MARK: - SpinnerScene (SpriteKit)
@@ -181,7 +261,12 @@ class SpinnerScene: SKScene {
         didSet {
             guard sceneReady else { return }
             rebuildPattern()
+            updateBorderColor()
         }
+    }
+
+    private var currentPalette: PatternPalette {
+        PatternColors.palette(for: currentPattern)
     }
 
     private var spinnerNode: SKNode!
@@ -231,20 +316,33 @@ class SpinnerScene: SKScene {
         spinnerNode.addChild(patternNode)
 
         borderNode = SKShapeNode(circleOfRadius: spinnerRadius)
-        borderNode.strokeColor = AuroraColors.blue.withAlphaComponent(0.6)
-        borderNode.lineWidth = 2.5
+        borderNode.strokeColor = currentPalette.primary.withAlphaComponent(0.3)
+        borderNode.lineWidth = 1.5
         borderNode.fillColor = .clear
-        borderNode.glowWidth = 1
+        borderNode.glowWidth = 0
+        // Dashed border (variant C)
+        let dashes: [CGFloat] = [6, 8]
+        let dashedPath = CGPath(ellipseIn: CGRect(x: -spinnerRadius, y: -spinnerRadius,
+                                                    width: spinnerRadius * 2, height: spinnerRadius * 2),
+                                  transform: nil)
+        borderNode.path = dashedPath.copy(dashingWithPhase: 0, lengths: dashes)
         spinnerNode.addChild(borderNode)
 
         centerDot = SKShapeNode(circleOfRadius: 6)
-        centerDot.fillColor = AuroraColors.blue.withAlphaComponent(0.9)
-        centerDot.strokeColor = AuroraColors.sky.withAlphaComponent(0.5)
+        centerDot.fillColor = currentPalette.primary.withAlphaComponent(0.9)
+        centerDot.strokeColor = currentPalette.secondary.withAlphaComponent(0.5)
         centerDot.lineWidth = 1.5
         spinnerNode.addChild(centerDot)
 
         rebuildPattern()
         startMotionUpdates()
+    }
+
+    private func updateBorderColor() {
+        let pal = currentPalette
+        borderNode.strokeColor = pal.primary.withAlphaComponent(0.3)
+        centerDot.fillColor = pal.primary.withAlphaComponent(0.9)
+        centerDot.strokeColor = pal.secondary.withAlphaComponent(0.5)
     }
 
     // MARK: - Pattern Builders
@@ -271,7 +369,7 @@ class SpinnerScene: SKScene {
         for i in 0..<ringCount {
             let radius = CGFloat(ringCount - i) * (spinnerRadius * 0.85 / CGFloat(ringCount))
             let ring = SKShapeNode(circleOfRadius: radius)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             ring.strokeColor = color.withAlphaComponent(0.3 + CGFloat(i) * 0.03)
             ring.lineWidth = 2.5
             ring.fillColor = .clear
@@ -296,7 +394,7 @@ class SpinnerScene: SKScene {
                 else { path.addLine(to: CGPoint(x: x, y: y)) }
             }
             let arm = SKShapeNode(path: path)
-            let color = AuroraColors.all[a % AuroraColors.all.count]
+            let color = currentPalette.all[a % currentPalette.all.count]
             arm.strokeColor = color.withAlphaComponent(0.5)
             arm.lineWidth = 2.5
             arm.fillColor = .clear
@@ -312,7 +410,7 @@ class SpinnerScene: SKScene {
             let angle = CGFloat(i) * goldenAngle
             let dot = SKShapeNode(circleOfRadius: 2.5 + t * 2)
             dot.position = CGPoint(x: cos(angle) * radius, y: sin(angle) * radius)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             dot.fillColor = color.withAlphaComponent(0.3 + t * 0.4)
             dot.strokeColor = .clear
             patternNode.addChild(dot)
@@ -334,7 +432,7 @@ class SpinnerScene: SKScene {
                 else { path.addLine(to: CGPoint(x: x, y: y)) }
             }
             let spiral = SKShapeNode(path: path)
-            spiral.strokeColor = AuroraColors.all[s].withAlphaComponent(0.6)
+            spiral.strokeColor = currentPalette.all[s].withAlphaComponent(0.6)
             spiral.lineWidth = 3
             spiral.lineCap = .round
             spiral.fillColor = .clear
@@ -354,7 +452,7 @@ class SpinnerScene: SKScene {
             path.addEllipse(in: CGRect(x: cx - r * 0.3, y: cy - r * 0.12, width: r * 0.6, height: r * 0.24),
                           transform: CGAffineTransform(rotationAngle: angle))
             let petal = SKShapeNode(path: path)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             petal.strokeColor = color.withAlphaComponent(0.5)
             petal.lineWidth = 2
             petal.fillColor = color.withAlphaComponent(0.08)
@@ -363,7 +461,7 @@ class SpinnerScene: SKScene {
         }
         for r in stride(from: 15, through: 45, by: 15) as StrideThrough<Int> {
             let ring = SKShapeNode(circleOfRadius: CGFloat(r))
-            ring.strokeColor = AuroraColors.sky.withAlphaComponent(0.25)
+            ring.strokeColor = currentPalette.secondary.withAlphaComponent(0.25)
             ring.lineWidth = 1.5
             ring.fillColor = .clear
             patternNode.addChild(ring)
@@ -379,7 +477,7 @@ class SpinnerScene: SKScene {
             path.addLine(to: CGPoint(x: (spinnerRadius - 4) * cos(angle),
                                      y: (spinnerRadius - 4) * sin(angle)))
             let ray = SKShapeNode(path: path)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             ray.strokeColor = color.withAlphaComponent(0.5)
             ray.lineWidth = i % 2 == 0 ? 3 : 1.5
             ray.lineCap = .round
@@ -394,7 +492,7 @@ class SpinnerScene: SKScene {
             let t = CGFloat(i + 1) / CGFloat(rings + 1)
             let r = t * spinnerRadius * 0.9
             let ring = SKShapeNode(circleOfRadius: r)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             ring.strokeColor = color.withAlphaComponent(0.3 + t * 0.3)
             ring.lineWidth = 1.5 + t * 2
             ring.fillColor = .clear
@@ -414,7 +512,7 @@ class SpinnerScene: SKScene {
                 let dotR: CGFloat = 3.5 - CGFloat(c) * 0.3
                 let dot = SKShapeNode(circleOfRadius: dotR)
                 dot.position = CGPoint(x: cos(angle) * r, y: sin(angle) * r)
-                let color = AuroraColors.all[(c + d) % AuroraColors.all.count]
+                let color = currentPalette.all[(c + d) % currentPalette.all.count]
                 dot.fillColor = color.withAlphaComponent(0.6)
                 dot.strokeColor = .clear
                 patternNode.addChild(dot)
@@ -441,7 +539,7 @@ class SpinnerScene: SKScene {
                 else { path.addLine(to: CGPoint(x: x, y: y)) }
             }
             let wave = SKShapeNode(path: path)
-            let color = AuroraColors.all[w % AuroraColors.all.count]
+            let color = currentPalette.all[w % currentPalette.all.count]
             wave.strokeColor = color.withAlphaComponent(0.5)
             wave.lineWidth = 2.5
             wave.lineCap = .round
@@ -467,7 +565,7 @@ class SpinnerScene: SKScene {
                 let starSize: CGFloat = 1.5 + t * 2.5 + CGFloat.random(in: 0...1)
                 let star = SKShapeNode(circleOfRadius: starSize)
                 star.position = CGPoint(x: x, y: y)
-                let color = AuroraColors.all[(a + s) % AuroraColors.all.count]
+                let color = currentPalette.all[(a + s) % currentPalette.all.count]
                 star.fillColor = color.withAlphaComponent(0.3 + t * 0.5)
                 star.strokeColor = .clear
                 patternNode.addChild(star)
@@ -487,11 +585,11 @@ class SpinnerScene: SKScene {
             path.closeSubpath()
             let sector = SKShapeNode(path: path)
             if i % 2 == 0 {
-                sector.fillColor = AuroraColors.ice.withAlphaComponent(0.15)
-                sector.strokeColor = AuroraColors.ice.withAlphaComponent(0.3)
+                sector.fillColor = currentPalette.tertiary.withAlphaComponent(0.15)
+                sector.strokeColor = currentPalette.tertiary.withAlphaComponent(0.3)
             } else {
                 sector.fillColor = UIColor.clear
-                sector.strokeColor = AuroraColors.blue.withAlphaComponent(0.15)
+                sector.strokeColor = currentPalette.primary.withAlphaComponent(0.15)
             }
             sector.lineWidth = 0.5
             patternNode.addChild(sector)
@@ -614,16 +712,11 @@ class SpinnerScene: SKScene {
         spinnerNode.position = spinnerPosition
 
         let speed = abs(angularVelocity)
-        borderNode.glowWidth = speed > 1 ? min(speed / 4.0, 5.0) : 0.5
 
-        let hue = (currentRotation.truncatingRemainder(dividingBy: .pi * 2)) / (.pi * 2)
-        let borderColor = UIColor(
-            hue: 0.57 + abs(hue) * 0.08,
-            saturation: 0.7 + min(speed / 30, 0.25),
-            brightness: 0.7 + min(speed / 20, 0.25),
-            alpha: 0.7
-        )
-        borderNode.strokeColor = borderColor
+        // Variant C: border fades out with speed
+        let borderAlpha = max(0, 0.3 - min(speed * 0.015, 0.3))
+        borderNode.strokeColor = currentPalette.primary.withAlphaComponent(borderAlpha)
+        borderNode.glowWidth = 0
     }
 
     private func updatePulsePattern() {
@@ -637,7 +730,7 @@ class SpinnerScene: SKScene {
             ring.position = CGPoint(x: cos(rot + fi) * wobble, y: sin(rot + fi) * wobble)
 
             let alpha = 0.15 + 0.08 * sin(rot * 3.0 + fi) + min(speed * 0.005, 0.15)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             ring.strokeColor = color.withAlphaComponent(alpha + fi * 0.03)
             ring.setScale(1.0 + sin(rot * 1.5 + fi * 0.5) * min(speed * 0.002, 0.05))
         }
@@ -653,7 +746,7 @@ class SpinnerScene: SKScene {
             let pulse = 1.0 + sin(rot * 2.0 + fi * 0.6) * min(speed * 0.003, 0.08)
             ring.setScale(pulse)
             let alpha = 0.2 + sin(rot * 1.5 + fi * 0.8) * 0.1 + min(speed * 0.005, 0.2)
-            let color = AuroraColors.all[i % AuroraColors.all.count]
+            let color = currentPalette.all[i % currentPalette.all.count]
             ring.strokeColor = color.withAlphaComponent(alpha)
         }
     }
