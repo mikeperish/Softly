@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - SoundView
 struct SoundView: View {
     @StateObject private var engine = SoundEngine()
-    @State private var soundEnabled = true
-    @State private var hapticsEnabled = true
+    @Binding var soundEnabled: Bool
+    @Binding var hapticsEnabled: Bool
     @State private var touchRipples: [Ripple] = []
     @State private var isTouching = false
     @State private var showPaywall = false

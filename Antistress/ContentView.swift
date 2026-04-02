@@ -24,7 +24,7 @@ struct ContentView: View {
                 .tabItem { Label("Pop", systemImage: "circle.hexagongrid.fill") }
                 .tag(0)
 
-                SoundView()
+                SoundView(soundEnabled: $soundEnabled, hapticsEnabled: $hapticsEnabled)
                     .tabItem { Label("Sound", systemImage: "waveform") }
                     .tag(1)
 
@@ -43,7 +43,7 @@ struct ContentView: View {
                 .tabItem { Label("Focus", systemImage: "timer") }
                 .tag(3)
 
-                PhysicsView()
+                PhysicsView(soundEnabled: $soundEnabled, hapticsEnabled: $hapticsEnabled)
                     .tabItem { Label("Physics", systemImage: "gyroscope") }
                     .tag(4)
             }

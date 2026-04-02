@@ -46,8 +46,8 @@ enum SpinnerPattern: Int, CaseIterable {
 // MARK: - PhysicsView (SwiftUI wrapper)
 struct PhysicsView: View {
     @State private var currentPattern: SpinnerPattern = .pulse
-    @State private var soundEnabled = true
-    @State private var hapticsEnabled = true
+    @Binding var soundEnabled: Bool
+    @Binding var hapticsEnabled: Bool
     @State private var showPaywall = false
     @Environment(SubscriptionManager.self) private var subscriptionManager
 
@@ -804,7 +804,6 @@ class SpinnerScene: SKScene {
 
 // MARK: - Preview
 #Preview {
-    PhysicsView()
-        .environment(SubscriptionManager.shared)
+    PhysicsView(soundEnabled: .constant(true), hapticsEnabled: .constant(true))        .environment(SubscriptionManager.shared)
         .preferredColorScheme(.dark)
 }
