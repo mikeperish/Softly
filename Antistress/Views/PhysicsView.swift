@@ -73,9 +73,13 @@ struct PhysicsView: View {
                     showPaywall = true
                 }
             }
-            .onChange(of: currentPattern) { _, _ in
-                SpinnerScene.shared.isLocked = !currentPattern.isFree && !subscriptionManager.isPremium
-            }
+            .onChange(of: currentPattern) { _, newPattern in
+                            let locked = !newPattern.isFree && !subscriptionManager.isPremium
+                            SpinnerScene.shared.isLocked = locked
+                            if locked {
+                                SpinnerScene.shared.stopSpinner()
+                            }
+                        }
 
             // Pattern picker (bottom)
             VStack {
@@ -604,6 +608,12 @@ class SpinnerScene: SKScene {
         motionManager.startDeviceMotionUpdates()
     }
 
+    // MARK: - Stop Spinner
+       func stopSpinner() {
+           angularVelocity = 0
+           spinnerVelocity = .zero
+       }
+    
     // MARK: - Touch Handling
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
