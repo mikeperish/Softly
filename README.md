@@ -34,7 +34,7 @@ A pocket antistress companion for restless minds. Interactive fidgets with hapti
 
 Softly does not collect, store, or share any personal data. All app data (timer stats, preferences) is stored locally on your device.
 
-Read the full [Privacy Policy](https://github.com/mikeperish/Softly/blob/main/PRIVACY.md).
+Read the full [Privacy Policy](https://mikeperish.github.io/Softly/privacy.html).
 
 ## Support
 
