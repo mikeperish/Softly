@@ -25,6 +25,8 @@
             --text-muted: #4A5568;
         }
 
+        html { scroll-behavior: smooth; }
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
@@ -33,7 +35,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Decorative blobs */
         .blob-container {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -92,7 +93,6 @@
             padding: 0 24px;
         }
 
-        /* NAV */
         nav {
             display: flex;
             align-items: center;
@@ -109,9 +109,7 @@
             letter-spacing: -0.5px;
         }
 
-        .logo span {
-            color: var(--teal);
-        }
+        .logo span { color: var(--teal); }
 
         nav a {
             font-family: 'DM Mono', monospace;
@@ -129,7 +127,6 @@
             align-items: center;
         }
 
-        /* HERO */
         .hero {
             text-align: center;
             padding: 100px 0 80px;
@@ -193,14 +190,9 @@
             box-shadow: 0 0 60px rgba(0, 212, 180, 0.25);
         }
 
-        .hero-cta svg {
-            width: 20px; height: 20px;
-        }
+        .hero-cta svg { width: 20px; height: 20px; }
 
-        /* FEATURES */
-        .features-section {
-            padding: 40px 0 80px;
-        }
+        .features-section { padding: 40px 0 80px; }
 
         .section-label {
             font-family: 'DM Mono', monospace;
@@ -286,7 +278,6 @@
         .card-physics { --card-accent: #00D4B4; }
         .card-physics .feature-icon { background: rgba(0, 212, 180, 0.12); }
 
-        /* STATS */
         .stats-bar {
             display: flex;
             justify-content: center;
@@ -298,9 +289,7 @@
             flex-wrap: wrap;
         }
 
-        .stat-item {
-            text-align: center;
-        }
+        .stat-item { text-align: center; }
 
         .stat-value {
             font-family: 'DM Mono', monospace;
@@ -310,15 +299,9 @@
             margin-bottom: 4px;
         }
 
-        .stat-label {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .stat-label { font-size: 13px; color: var(--text-muted); }
 
-        /* WHY */
-        .why-section {
-            padding: 0 0 80px;
-        }
+        .why-section { padding: 0 0 80px; }
 
         .why-grid {
             display: grid;
@@ -360,7 +343,9 @@
             line-height: 1.6;
         }
 
-        /* ADHD BANNER */
+        .why-item a { color: var(--teal); text-decoration: none; }
+        .why-item a:hover { text-decoration: underline; }
+
         .adhd-banner {
             background: linear-gradient(135deg, rgba(0, 212, 180, 0.06), rgba(155, 109, 255, 0.06));
             border: 1px solid rgba(0, 212, 180, 0.15);
@@ -370,10 +355,7 @@
             margin-bottom: 80px;
         }
 
-        .adhd-banner h2 {
-            margin-bottom: 16px;
-            font-size: 30px;
-        }
+        .adhd-banner h2 { margin-bottom: 16px; font-size: 30px; }
 
         .adhd-banner p {
             color: var(--text-dim);
@@ -383,7 +365,6 @@
             margin: 0 auto;
         }
 
-        /* FOOTER */
         footer {
             border-top: 1px solid var(--border);
             padding: 40px 0;
@@ -400,10 +381,7 @@
             color: var(--text-muted);
         }
 
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
+        .footer-links { display: flex; gap: 24px; }
 
         .footer-links a {
             font-family: 'DM Mono', monospace;
@@ -415,7 +393,6 @@
 
         .footer-links a:hover { color: var(--teal); }
 
-        /* ANIMATIONS */
         .fade-up {
             opacity: 0;
             transform: translateY(30px);
@@ -427,7 +404,6 @@
             transform: translateY(0);
         }
 
-        /* MOBILE */
         @media (max-width: 640px) {
             .hero { padding: 60px 0 50px; }
             h1 { letter-spacing: -1px; }
@@ -450,7 +426,6 @@
 
 <div class="content">
 
-    <!-- NAV -->
     <nav>
         <div class="logo">softly<span>.</span></div>
         <div class="nav-links">
@@ -461,7 +436,6 @@
         </div>
     </nav>
 
-    <!-- HERO -->
     <section class="hero fade-up">
         <div class="hero-badge">iOS · Free to download</div>
         <h1>Your mind<br>deserves to<br><span class="gradient-text">feel softly</span></h1>
@@ -472,11 +446,9 @@
         </a>
     </section>
 
-    <!-- FEATURES -->
     <section class="features-section fade-up" id="features">
         <p class="section-label">Features</p>
         <h2>Five ways to decompress</h2>
-
         <div class="features-grid">
             <div class="feature-card card-pop">
                 <div class="feature-icon">🫧</div>
@@ -506,7 +478,6 @@
         </div>
     </section>
 
-    <!-- STATS -->
     <div class="stats-bar fade-up">
         <div class="stat-item">
             <div class="stat-value">5</div>
@@ -526,11 +497,9 @@
         </div>
     </div>
 
-    <!-- WHY -->
     <section class="why-section fade-up">
         <p class="section-label">Why Softly</p>
         <h2>Built for restless minds</h2>
-
         <div class="why-grid">
             <div class="why-item">
                 <div class="why-icon">📳</div>
@@ -563,23 +532,20 @@
         </div>
     </section>
 
-    <!-- ADHD BANNER -->
     <div class="adhd-banner fade-up">
         <h2>Made for ADHD minds</h2>
         <p>We know the struggle — racing thoughts, restless energy, difficulty focusing. Softly gives your hands something to do while your brain does its thing. No pressure, no timers you can't pause, no guilt.</p>
     </div>
 
-    <!-- SUPPORT -->
-    <section class="why-section fade-up" id="support">
+    <section class="why-section" id="support">
         <p class="section-label">Support</p>
         <h2>Need help?</h2>
-
         <div class="why-grid">
             <div class="why-item">
                 <div class="why-icon">✉️</div>
                 <div>
                     <h4>Email us</h4>
-                    <p>Have a question or found a bug? Write to <a href="mailto:mykhailo.mirzaiev@icloud.com" style="color: var(--teal); text-decoration: none;">mykhailo.mirzaiev@icloud.com</a></p>
+                    <p>Have a question or found a bug? Write to <a href="mailto:mykhailo.mirzaiev@icloud.com">mykhailo.mirzaiev@icloud.com</a></p>
                 </div>
             </div>
             <div class="why-item">
@@ -592,29 +558,41 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer>
         <div class="footer-left">© 2026 Mykhailo Mirzaiev</div>
         <div class="footer-links">
             <a href="https://mikeperish.github.io/Softly/privacy.html">Privacy Policy</a>
             <a href="https://mikeperish.github.io/Softly/terms.html">Terms of Use</a>
-            <a href="#support">Support</a>
+            <a href="mailto:mykhailo.mirzaiev@icloud.com">Support</a>
         </div>
     </footer>
 
 </div>
 
 <script>
-    // Intersection Observer for fade-up animations
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Fade-up animations
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
             }
         });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+    document.querySelectorAll('.fade-up').forEach(function(el) {
+        observer.observe(el);
+    });
 </script>
 
 </body>
